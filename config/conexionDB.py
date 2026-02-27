@@ -24,3 +24,4 @@ async def get_conexion():
         yield conn
 
 app = FastAPI(lifespan=lifespan)
+
