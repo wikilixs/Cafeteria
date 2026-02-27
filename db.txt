@@ -1,179 +1,653 @@
--- ================================
--- ENUMS (estados sí está bien)
--- ================================
+CREATE DATA BASE cafeteria;
+
 CREATE TYPE estado_compra AS ENUM ('BORRADOR', 'CONFIRMADA', 'ANULADA');
 CREATE TYPE estado_venta  AS ENUM ('PENDIENTE', 'PAGADA', 'ANULADA');
 
--- ================================
--- ROL
--- ================================
-CREATE TABLE Rol (
-    idRol SERIAL PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL UNIQUE
+-- ==========================================
+-- CATÁLOGOS BASE
+-- ==========================================
+
+CREATE TABLE rol (
+    id_rol SERIAL PRIMARY KEY,
+    nombre VARCHAR(30) UNIQUE NOT NULL
 );
 
--- ================================
+-- ==========================================
+-- PERSONAL Y ACCESO
+-- ==========================================
+
+CREATE TABLE personal (
+    id_personal       SERIAL PRIMARY KEY,
+    id_rol            INT NOT NULL REFERENCES rol(id_rol),
+    nombres           VARCHAR(80) NOT NULL,
+    primer_apellido   VARCHAR(80) NOT NULL,
+    segundo_apellido  VARCHAR(80),
+    telefono          VARCHAR(30),
+    fecha_nacimiento  DATE,
+    fecha_contratacion DATE,
+    activo            BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE usuario (
+    id_usuario    SERIAL PRIMARY KEY,
+    id_personal   INT UNIQUE NOT NULL REFERENCES personal(id_personal),
+    username      VARCHAR(60) UNIQUE NOT NULL,
+    email         VARCHAR(120) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL
+);
+
+-- ==========================================
+-- INSUMOS
+-- ==========================================
+
+CREATE TABLE insumo (
+    id_insumo     SERIAL PRIMARY KEY,
+    nombre        VARCHAR(120) UNIQUE NOT NULL,
+    categoria     VARCHAR(60),
+    unidad_medida VARCHAR(20),
+    stock_minimo  NUMERIC(12,3) DEFAULT 0,
+    activo        BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- ==========================================
+-- PRODUCTOS
+-- ==========================================
+
+CREATE TABLE producto (
+    id_producto   SERIAL PRIMARY KEY,
+    nombre        VARCHAR(120) UNIQUE NOT NULL,
+    descripcion   TEXT,
+    unidad_medida VARCHAR(20),
+    precio_venta  NUMERIC(10,2) NOT NULL DEFAULT 0,
+    activo        BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE producto_insumo (
+    id_producto_insumo SERIAL PRIMARY KEY,
+    id_producto        INT NOT NULL REFERENCES producto(id_producto),
+    id_insumo          INT NOT NULL REFERENCES insumo(id_insumo),
+    cantidad           NUMERIC(12,3) NOT NULL,
+    UNIQUE (id_producto, id_insumo)
+);
+
+-- ==========================================
+-- PROVEEDORES Y COMPRAS
+-- ==========================================
+
+CREATE TABLE proveedor (
+    id_proveedor INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre       VARCHAR(120) NOT NULL,
+    contacto     VARCHAR(80),
+    telefono     VARCHAR(30),
+    email        VARCHAR(120),
+    direccion    VARCHAR(200),
+    activo       BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE compra (
+    id_compra    SERIAL PRIMARY KEY,
+    id_proveedor INT REFERENCES proveedor(id_proveedor),
+    id_usuario   INT NOT NULL REFERENCES usuario(id_usuario),
+    fecha        TIMESTAMP NOT NULL DEFAULT NOW(),
+    total        NUMERIC(12,2) NOT NULL DEFAULT 0,
+    estado       estado_compra NOT NULL DEFAULT 'BORRADOR'
+);
+
+CREATE TABLE detalle_compra (
+    id_detalle_compra   SERIAL PRIMARY KEY,
+    id_compra           INT NOT NULL REFERENCES compra(id_compra) ON DELETE CASCADE,
+    id_insumo           INT NOT NULL REFERENCES insumo(id_insumo),
+    cantidad            NUMERIC(12,3) NOT NULL,
+    cantidad_disponible NUMERIC(12,3) NOT NULL,
+    costo_unitario      NUMERIC(12,4) NOT NULL,
+    fecha_vencimiento   DATE
+);
+
+-- ==========================================
+-- VENTAS
+-- ==========================================
+
+CREATE TABLE venta (
+    id_venta  SERIAL PRIMARY KEY,
+    id_usuario INT NOT NULL REFERENCES usuario(id_usuario),
+    fecha     TIMESTAMP NOT NULL DEFAULT NOW(),
+    estado    estado_venta NOT NULL DEFAULT 'PENDIENTE'
+);
+
+CREATE TABLE detalle_venta (
+    id_detalle_venta SERIAL PRIMARY KEY,
+    id_venta         INT NOT NULL REFERENCES venta(id_venta) ON DELETE CASCADE,
+    id_producto      INT NOT NULL REFERENCES producto(id_producto),
+    cantidad         NUMERIC(12,3) NOT NULL,
+    precio_unitario  NUMERIC(10,2) NOT NULL
+);
+
+-- ==========================================
+-- TRAZABILIDAD DE LOTES (FIFO/FEFO)
+-- ==========================================
+
+CREATE TABLE consumo_lotes (
+    id_consumo        SERIAL PRIMARY KEY,
+    id_detalle_venta  INT NOT NULL REFERENCES detalle_venta(id_detalle_venta) ON DELETE CASCADE,
+    id_detalle_compra INT NOT NULL REFERENCES detalle_compra(id_detalle_compra),
+    cantidad          NUMERIC(12,3) NOT NULL,
+    fecha             TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+
+-- ==========================================
+-- ROLES
+-- ==========================================
+
+INSERT INTO rol (nombre) VALUES
+    ('Administrador'),
+    ('Vendedor'),
+    ('Almacenero');
+
+-- ==========================================
 -- PERSONAL
--- ================================
-CREATE TABLE Personal (
-    idPersonal SERIAL PRIMARY KEY,
-    idRol INT NOT NULL,
-    nombres VARCHAR(80) NOT NULL,
-    primerApellido VARCHAR(80) NOT NULL,
-    segundoApellido VARCHAR(80),
-    telefono VARCHAR(30),
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    FOREIGN KEY (idRol) REFERENCES Rol(idRol)
-);
+-- ==========================================
 
--- ================================
--- USUARIO
--- ================================
-CREATE TABLE Usuario (
-    idUsuario SERIAL PRIMARY KEY,
-    idPersonal INT UNIQUE NOT NULL,
-    username VARCHAR(60) NOT NULL UNIQUE,
-    email VARCHAR(120) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    FOREIGN KEY (idPersonal) REFERENCES Personal(idPersonal)
-);
+INSERT INTO personal (id_rol, nombres, primer_apellido, segundo_apellido, telefono, fecha_nacimiento, fecha_contratacion, activo) VALUES
+    (1, 'Carlos',   'Mamani',   'Quispe',  '71234567', '1990-03-15', '2020-01-10', TRUE),
+    (2, 'Ana',      'Flores',   'Condori', '72345678', '1995-07-22', '2021-03-05', TRUE),
+    (2, 'Luis',     'Choque',   'Vargas',  '73456789', '1993-11-08', '2021-06-15', TRUE),
+    (3, 'Maria',    'Quispe',   'Apaza',   '74567890', '1998-02-28', '2022-02-01', TRUE),
+    (1, 'Roberto',  'Apaza',    NULL,      '75678901', '1988-09-10', '2019-08-20', TRUE);
 
--- ================================
--- ITEM (supertipo)
--- ================================
-CREATE TABLE Item (
-    idItem SERIAL PRIMARY KEY,
-    nombre VARCHAR(120) NOT NULL UNIQUE,
-    activo BOOLEAN NOT NULL DEFAULT TRUE
-);
+-- ==========================================
+-- USUARIOS
+-- ==========================================
 
--- ================================
--- PRODUCTO (subtipo)
--- ================================
-CREATE TABLE Producto (
-    idItem INT PRIMARY KEY,
-    precio_venta NUMERIC(10,2) NOT NULL CHECK (precio_venta >= 0),
-    FOREIGN KEY (idItem) REFERENCES Item(idItem) ON DELETE CASCADE
-);
+INSERT INTO usuario (id_personal, username, email, password_hash) VALUES
+    (1, 'cmamani',  'carlos.mamani@empresa.com',  '$2b$10$hashedpassword1'),
+    (2, 'aflores',  'ana.flores@empresa.com',     '$2b$10$hashedpassword2'),
+    (3, 'lchoque',  'luis.choque@empresa.com',    '$2b$10$hashedpassword3'),
+    (4, 'mquispe',  'maria.quispe@empresa.com',   '$2b$10$hashedpassword4'),
+    (5, 'rapaza',   'roberto.apaza@empresa.com',  '$2b$10$hashedpassword5');
 
--- ================================
--- INSUMO (subtipo)
--- ================================
-CREATE TABLE Insumo (
-    idItem INT PRIMARY KEY,
-    unidad VARCHAR(20) NOT NULL, -- g, ml, unidad, etc.
-    stock_minimo NUMERIC(12,3) NOT NULL DEFAULT 0 CHECK (stock_minimo >= 0),
-    FOREIGN KEY (idItem) REFERENCES Item(idItem) ON DELETE CASCADE
-);
+-- ==========================================
+-- INSUMOS
+-- ==========================================
 
--- ================================
--- PROVEEDOR
--- ================================
-CREATE TABLE Proveedor (
-    idProveedor SERIAL PRIMARY KEY,
-    nombre VARCHAR(120) NOT NULL,
-    telefono VARCHAR(30),
-    email VARCHAR(120),
-    activo BOOLEAN NOT NULL DEFAULT TRUE
-);
+INSERT INTO insumo (nombre, categoria, unidad_medida, stock_minimo, activo) VALUES
+    ('Leche entera',       'Lácteos',    'ml',     5000,  TRUE),
+    ('Café molido',        'Cafetería',  'g',      1000,  TRUE),
+    ('Azúcar blanca',      'Abarrotes',  'g',      2000,  TRUE),
+    ('Harina de trigo',    'Abarrotes',  'g',      3000,  TRUE),
+    ('Huevo',              'Proteínas',  'unidad', 50,    TRUE),
+    ('Mantequilla',        'Lácteos',    'g',      500,   TRUE),
+    ('Chocolate negro',    'Repostería', 'g',      800,   TRUE),
+    ('Crema de leche',     'Lácteos',    'ml',     2000,  TRUE),
+    ('Vainilla',           'Repostería', 'ml',     200,   TRUE),
+    ('Polvo de hornear',   'Repostería', 'g',      300,   TRUE);
 
--- ================================
--- COMPRA (sin total -> 3FN)
--- ================================
-CREATE TABLE Compra (
-    idCompra SERIAL PRIMARY KEY,
-    idProveedor INT,
-    idUsuario INT NOT NULL,
-    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    estado estado_compra NOT NULL DEFAULT 'BORRADOR',
-    FOREIGN KEY (idProveedor) REFERENCES Proveedor(idProveedor),
-    FOREIGN KEY (idUsuario) REFERENCES Usuario(idUsuario)
-);
+-- ==========================================
+-- PRODUCTOS
+-- ==========================================
 
--- ================================
--- DETALLE COMPRA (LOTE) -> SOLO INSUMOS
--- ================================
-CREATE TABLE DetalleCompra (
-    idDetalleCompra SERIAL PRIMARY KEY,
-    idCompra INT NOT NULL,
-    idItem INT NOT NULL, -- debe existir en Insumo
-    cantidad NUMERIC(12,3) NOT NULL CHECK (cantidad > 0),
-    cantidad_disponible NUMERIC(12,3) NOT NULL CHECK (cantidad_disponible >= 0),
-    costo_unitario NUMERIC(12,4) NOT NULL CHECK (costo_unitario >= 0),
-    fecha_vencimiento DATE,
-    FOREIGN KEY (idCompra) REFERENCES Compra(idCompra) ON DELETE CASCADE,
-    FOREIGN KEY (idItem) REFERENCES Insumo(idItem), -- fuerza que sea INSUMO
-    CHECK (cantidad_disponible <= cantidad)
-);
+INSERT INTO producto (nombre, descripcion, unidad_medida, precio_venta, activo) VALUES
+    ('Café Americano',    'Café negro con agua caliente',               'unidad', 15.00, TRUE),
+    ('Café Latte',        'Café espresso con leche vaporizada',         'unidad', 22.00, TRUE),
+    ('Capuchino',         'Espresso con leche y espuma',                'unidad', 22.00, TRUE),
+    ('Torta de Chocolate','Porción de torta húmeda de chocolate',       'porcion',35.00, TRUE),
+    ('Medialunas',        'Pack de 3 medialunas de mantequilla',        'pack',   18.00, TRUE),
+    ('Café Moca',         'Espresso con chocolate y leche vaporizada',  'unidad', 28.00, TRUE);
 
--- ================================
--- VENTA (sin total -> 3FN)
--- ================================
-CREATE TABLE Venta (
-    idVenta SERIAL PRIMARY KEY,
-    idUsuario INT NOT NULL,
-    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    estado estado_venta NOT NULL DEFAULT 'PENDIENTE',
-    FOREIGN KEY (idUsuario) REFERENCES Usuario(idUsuario)
-);
+-- ==========================================
+-- PRODUCTO_INSUMO (recetas)
+-- ==========================================
 
--- ================================
--- DETALLE VENTA -> SOLO PRODUCTOS
--- ================================
-CREATE TABLE DetalleVenta (
-    idDetalleVenta SERIAL PRIMARY KEY,
-    idVenta INT NOT NULL,
-    idItem INT NOT NULL, -- debe existir en Producto
-    cantidad NUMERIC(12,3) NOT NULL CHECK (cantidad > 0),
-    precio_unitario NUMERIC(10,2) NOT NULL CHECK (precio_unitario >= 0),
-    FOREIGN KEY (idVenta) REFERENCES Venta(idVenta) ON DELETE CASCADE,
-    FOREIGN KEY (idItem) REFERENCES Producto(idItem) -- fuerza que sea PRODUCTO
-);
+-- Café Americano: café + agua (agua no se gestiona como insumo)
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (1, 2, 18);    -- 18g café molido
 
--- ================================
--- DETALLE RECETA (producto -> insumo)
--- ================================
-CREATE TABLE DetalleReceta (
-    idDetalleReceta SERIAL PRIMARY KEY,
-    idItem INT NOT NULL,              -- Producto
-    idItemComponente INT NOT NULL,    -- Insumo
-    cantidad NUMERIC(12,3) NOT NULL CHECK (cantidad > 0),
-    FOREIGN KEY (idItem) REFERENCES Producto(idItem),
-    FOREIGN KEY (idItemComponente) REFERENCES Insumo(idItem),
-    UNIQUE (idItem, idItemComponente),
-    CHECK (idItem <> idItemComponente)
-);
+-- Café Latte: café + leche
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (2, 2, 18),    -- 18g café molido
+    (2, 1, 200);   -- 200ml leche
 
--- ================================
--- CONSUMO LOTES (FIFO) -> 3FN (sin idItem)
--- ================================
-CREATE TABLE ConsumoLotes (
-    idConsumo SERIAL PRIMARY KEY,
-    idDetalleVenta INT NOT NULL,
-    idDetalleCompra INT NOT NULL,
-    cantidad NUMERIC(12,3) NOT NULL CHECK (cantidad > 0),
-    costo_unitario NUMERIC(12,4) NOT NULL CHECK (costo_unitario >= 0),
-    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (idDetalleVenta) REFERENCES DetalleVenta(idDetalleVenta) ON DELETE CASCADE,
-    FOREIGN KEY (idDetalleCompra) REFERENCES DetalleCompra(idDetalleCompra)
-);
+-- Capuchino: café + leche + crema
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (3, 2, 18),    -- 18g café molido
+    (3, 1, 120),   -- 120ml leche
+    (3, 8, 50);    -- 50ml crema de leche
 
--- ================================
--- VISTAS OPCIONALES (totales derivados)
--- ================================
-CREATE VIEW v_total_compra AS
-SELECT
-  c.idCompra,
-  COALESCE(SUM(dc.cantidad * dc.costo_unitario), 0) AS total
-FROM Compra c
-LEFT JOIN DetalleCompra dc ON dc.idCompra = c.idCompra
-GROUP BY c.idCompra;
+-- Torta de Chocolate: harina + huevo + mantequilla + chocolate + azúcar + vainilla + polvo hornear
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (4, 4, 200),   -- 200g harina
+    (4, 5, 3),     -- 3 huevos
+    (4, 6, 100),   -- 100g mantequilla
+    (4, 7, 150),   -- 150g chocolate negro
+    (4, 3, 180),   -- 180g azúcar
+    (4, 9, 5),     -- 5ml vainilla
+    (4, 10, 8);    -- 8g polvo de hornear
 
-CREATE VIEW v_total_venta AS
-SELECT
-  v.idVenta,
-  COALESCE(SUM(dv.cantidad * dv.precio_unitario), 0) AS total
-FROM Venta v
-LEFT JOIN DetalleVenta dv ON dv.idVenta = v.idVenta
-GROUP BY v.idVenta; 
+-- Medialunas: harina + mantequilla + azúcar + huevo
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (5, 4, 150),   -- 150g harina
+    (5, 6, 80),    -- 80g mantequilla
+    (5, 3, 50),    -- 50g azúcar
+    (5, 5, 1);     -- 1 huevo
+
+-- Café Moca: café + leche + chocolate
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (6, 2, 18),    -- 18g café molido
+    (6, 1, 150),   -- 150ml leche
+    (6, 7, 30);    -- 30g chocolate negro
+
+-- ==========================================
+-- PROVEEDORES
+-- ==========================================
+
+INSERT INTO proveedor (nombre, contacto, telefono, email, direccion, activo) VALUES
+    ('Distribuidora La Paz',    'Juan Torrez',   '22345678', 'ventas@distlapaz.com',   'Av. Montes 345, La Paz',       TRUE),
+    ('Café Yungas Bolivia',     'Rosa Mamani',   '22456789', 'pedidos@cafeyungas.com', 'Calle Comercio 120, La Paz',   TRUE),
+    ('Lácteos del Norte',       'Pedro Choque',  '22567890', 'contacto@lactnorte.com', 'El Alto, Zona 16 de Julio',    TRUE),
+    ('Repostería Insumos SRL',  'Elena Vargas',  '22678901', 'info@repoinsumos.com',   'Av. 6 de Agosto 890, La Paz',  TRUE);
+
+-- ==========================================
+-- COMPRAS
+-- ==========================================
+
+INSERT INTO compra (id_proveedor, id_usuario, fecha, total, estado) VALUES
+    (2, 4, '2024-11-01 09:00:00', 850.00,  'CONFIRMADA'),
+    (3, 4, '2024-11-05 10:30:00', 620.00,  'CONFIRMADA'),
+    (1, 4, '2024-11-10 08:45:00', 430.00,  'CONFIRMADA'),
+    (4, 4, '2024-11-15 11:00:00', 980.00,  'CONFIRMADA'),
+    (2, 4, '2024-12-01 09:15:00', 750.00,  'CONFIRMADA');
+
+-- ==========================================
+-- DETALLE_COMPRA (lotes)
+-- ==========================================
+
+-- Compra 1: café molido (proveedor Café Yungas)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (1, 2, 5000, 5000, 0.15, '2025-05-01'),   -- 5kg café, 0.15 Bs/g
+    (1, 3, 2000, 2000, 0.08, '2026-01-01');   -- 2kg azúcar
+
+-- Compra 2: lácteos (proveedor Lácteos del Norte)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (2, 1, 10000, 10000, 0.05, '2024-11-20'),  -- 10L leche
+    (2, 8, 3000,  3000,  0.12, '2024-11-18'),  -- 3L crema
+    (2, 6, 2000,  2000,  0.09, '2024-12-15');  -- 2kg mantequilla
+
+-- Compra 3: abarrotes (Distribuidora La Paz)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (3, 4, 5000, 5000, 0.06, '2025-06-01'),   -- 5kg harina
+    (3, 5, 100,  100,  0.80, '2024-11-25'),   -- 100 huevos
+    (3, 3, 3000, 3000, 0.07, '2026-01-01');   -- 3kg azúcar
+
+-- Compra 4: repostería (Repostería Insumos SRL)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (4, 7, 3000, 3000, 0.22, '2025-08-01'),   -- 3kg chocolate negro
+    (4, 9, 500,  500,  0.30, '2025-12-01'),   -- 500ml vainilla
+    (4, 10, 1000, 1000, 0.10, '2025-10-01');  -- 1kg polvo hornear
+
+-- Compra 5: café nuevo lote (Café Yungas)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (5, 2, 5000, 5000, 0.16, '2025-06-01');   -- 5kg café, precio subió
+
+-- ==========================================
+-- VENTAS
+-- ==========================================
+
+INSERT INTO venta (id_usuario, fecha, estado) VALUES
+    (2, '2024-11-12 08:30:00', 'PAGADA'),
+    (2, '2024-11-12 09:15:00', 'PAGADA'),
+    (3, '2024-11-13 10:00:00', 'PAGADA'),
+    (2, '2024-11-14 11:30:00', 'PAGADA'),
+    (3, '2024-11-15 14:00:00', 'PAGADA');
+
+-- ==========================================
+-- DETALLE_VENTA
+-- ==========================================
+
+-- Venta 1
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (1, 1, 2, 15.00),   -- 2 Café Americano
+    (1, 2, 1, 22.00);   -- 1 Café Latte
+
+-- Venta 2
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (2, 3, 2, 22.00),   -- 2 Capuchino
+    (2, 4, 1, 35.00);   -- 1 Torta Chocolate
+
+-- Venta 3
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (3, 5, 2, 18.00),   -- 2 Medialunas
+    (3, 6, 1, 28.00);   -- 1 Café Moca
+
+-- Venta 4
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (4, 1, 3, 15.00),   -- 3 Café Americano
+    (4, 2, 2, 22.00);   -- 2 Café Latte
+
+-- Venta 5
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (5, 4, 2, 35.00),   -- 2 Torta Chocolate
+    (5, 3, 1, 22.00);   -- 1 Capuchino
+
+-- ==========================================
+-- CONSUMO_LOTES (FIFO — lote más antiguo primero)
+-- ==========================================
+
+-- Venta 1 - detalle 1: 2x Café Americano = 36g café (lote 1)
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (1, 1, 36, '2024-11-12 08:30:00');
+
+-- Venta 1 - detalle 2: 1x Café Latte = 18g café + 200ml leche
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (2, 1, 18,  '2024-11-12 09:15:00'),  -- café lote 1
+    (2, 3, 200, '2024-11-12 09:15:00');  -- leche lote 1
+
+-- Venta 2 - detalle 3: 2x Capuchino = 36g café + 240ml leche + 100ml crema
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (3, 1, 36,  '2024-11-12 09:15:00'),  -- café lote 1
+    (3, 3, 240, '2024-11-12 09:15:00'),  -- leche lote 1
+    (3, 4, 100, '2024-11-12 09:15:00');  -- crema lote 1
+
+-- Venta 3 - detalle 5: 2x Medialunas = 300g harina + 160g mantequilla + 100g azúcar + 2 huevos
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (5, 7, 300, '2024-11-13 10:00:00'),  -- harina lote 1
+    (5, 5, 160, '2024-11-13 10:00:00'),  -- mantequilla lote 1
+    (5, 2, 100, '2024-11-13 10:00:00'),  -- azúcar lote 1
+    (5, 8, 2,   '2024-11-13 10:00:00'); -- huevos lote 1
+
+-- Venta 3 - detalle 6: 1x Café Moca = 18g café + 150ml leche + 30g chocolate
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (6, 1, 18,  '2024-11-13 10:00:00'),  -- café lote 1
+    (6, 3, 150, '2024-11-13 10:00:00'),  -- leche lote 1
+    (6, 10, 30, '2024-11-13 10:00:00'); -- chocolate lote 1
+
+-- ==========================================
+-- ROLES (ya existen, omitir si ya se insertaron)
+-- ==========================================
+
+INSERT INTO rol (nombre) VALUES
+    ('Cajero'),
+    ('Supervisor');
+
+-- ==========================================
+-- PERSONAL
+-- ==========================================
+
+INSERT INTO personal (id_rol, nombres, primer_apellido, segundo_apellido, telefono, fecha_nacimiento, fecha_contratacion, activo) VALUES
+    (2, 'Sofia',    'Gutierrez', 'Mendoza',  '76789012', '1997-04-12', '2022-05-10', TRUE),
+    (2, 'Diego',    'Rojas',     'Huanca',   '77890123', '1994-08-19', '2022-07-01', TRUE),
+    (3, 'Patricia', 'Villca',    'Calle',    '78901234', '1999-01-05', '2023-01-15', TRUE),
+    (4, 'Andres',   'Condori',   'Mamani',   '79012345', '1992-12-30', '2021-11-20', TRUE),
+    (5, 'Valeria',  'Torrez',    NULL,       '70123456', '1996-06-18', '2023-03-08', TRUE),
+    (2, 'Fernando', 'Huanca',    'Quispe',   '71234560', '2000-09-25', '2023-09-01', TRUE);
+
+-- ==========================================
+-- USUARIOS
+-- ==========================================
+
+INSERT INTO usuario (id_personal, username, email, password_hash) VALUES
+    (6,  'sgutierrez', 'sofia.gutierrez@empresa.com',  '$2b$10$hashedpassword6'),
+    (7,  'drojas',     'diego.rojas@empresa.com',      '$2b$10$hashedpassword7'),
+    (8,  'pvillca',    'patricia.villca@empresa.com',  '$2b$10$hashedpassword8'),
+    (9,  'acondori',   'andres.condori@empresa.com',   '$2b$10$hashedpassword9'),
+    (10, 'vtorrez',    'valeria.torrez@empresa.com',   '$2b$10$hashedpassword10'),
+    (11, 'fhuanca',    'fernando.huanca@empresa.com',  '$2b$10$hashedpassword11');
+
+-- ==========================================
+-- INSUMOS
+-- ==========================================
+
+INSERT INTO insumo (nombre, categoria, unidad_medida, stock_minimo, activo) VALUES
+    ('Canela molida',      'Especias',   'g',      100,  TRUE),
+    ('Jengibre',           'Especias',   'g',      100,  TRUE),
+    ('Cacao en polvo',     'Repostería', 'g',      500,  TRUE),
+    ('Leche condensada',   'Lácteos',    'ml',     1000, TRUE),
+    ('Nuez moscada',       'Especias',   'g',      50,   TRUE),
+    ('Almendras',          'Frutos secos','g',     400,  TRUE),
+    ('Sal',                'Abarrotes',  'g',      500,  TRUE),
+    ('Aceite vegetal',     'Abarrotes',  'ml',     1000, TRUE),
+    ('Levadura',           'Repostería', 'g',      200,  TRUE),
+    ('Queso crema',        'Lácteos',    'g',      500,  TRUE),
+    ('Frutillas',          'Frutas',     'g',      800,  TRUE),
+    ('Miel de abeja',      'Abarrotes',  'ml',     300,  TRUE);
+
+-- ==========================================
+-- PRODUCTOS
+-- ==========================================
+
+INSERT INTO producto (nombre, descripcion, unidad_medida, precio_venta, activo) VALUES
+    ('Chai Latte',         'Té especiado con leche vaporizada y canela',        'unidad', 25.00, TRUE),
+    ('Brownie',            'Brownie húmedo de chocolate con nueces',             'porcion',30.00, TRUE),
+    ('Cheesecake',         'Porción de cheesecake con salsa de frutillas',       'porcion',40.00, TRUE),
+    ('Pan de nuez',        'Pan artesanal con almendras y miel',                 'unidad', 20.00, TRUE),
+    ('Chocolate caliente', 'Bebida caliente de cacao con leche y crema',         'unidad', 22.00, TRUE),
+    ('Cacao Especiado',    'Cacao caliente con canela, jengibre y nuez moscada', 'unidad', 25.00, TRUE);
+
+-- ==========================================
+-- PRODUCTO_INSUMO (recetas nuevos productos)
+-- ==========================================
+
+-- Chai Latte: leche + canela + jengibre + azúcar
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (7,  1,  200),   -- 200ml leche
+    (7,  11, 5),     -- 5g canela
+    (7,  12, 3),     -- 3g jengibre
+    (7,  3,  15);    -- 15g azúcar
+
+-- Brownie: chocolate + harina + huevo + mantequilla + azúcar + cacao
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (8,  7,  100),   -- 100g chocolate negro
+    (8,  4,  80),    -- 80g harina
+    (8,  5,  2),     -- 2 huevos
+    (8,  6,  90),    -- 90g mantequilla
+    (8,  3,  120),   -- 120g azúcar
+    (8,  13, 30);    -- 30g cacao en polvo
+
+-- Cheesecake: queso crema + azúcar + huevo + vainilla + mantequilla + frutillas
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (9,  20, 150),   -- 150g queso crema
+    (9,  3,  80),    -- 80g azúcar
+    (9,  5,  2),     -- 2 huevos
+    (9,  9,  5),     -- 5ml vainilla
+    (9,  6,  50),    -- 50g mantequilla
+    (9,  21, 60);    -- 60g frutillas
+
+-- Pan de nuez: harina + almendras + miel + huevo + levadura + sal + aceite
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (10, 4,  200),   -- 200g harina
+    (10, 16, 60),    -- 60g almendras
+    (10, 22, 30),    -- 30ml miel
+    (10, 5,  1),     -- 1 huevo
+    (10, 19, 5),     -- 5g levadura
+    (10, 17, 3),     -- 3g sal
+    (10, 18, 20);    -- 20ml aceite
+
+-- Chocolate caliente: cacao + leche + crema + azúcar
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (11, 13, 25),    -- 25g cacao en polvo
+    (11, 1,  200),   -- 200ml leche
+    (11, 8,  50),    -- 50ml crema
+    (11, 3,  20);    -- 20g azúcar
+
+-- Cacao Especiado: cacao + leche + canela + jengibre + nuez moscada + azúcar
+INSERT INTO producto_insumo (id_producto, id_insumo, cantidad) VALUES
+    (12, 13, 25),    -- 25g cacao en polvo
+    (12, 1,  200),   -- 200ml leche
+    (12, 11, 3),     -- 3g canela
+    (12, 12, 2),     -- 2g jengibre
+    (12, 15, 1),     -- 1g nuez moscada
+    (12, 3,  20);    -- 20g azúcar
+
+-- ==========================================
+-- PROVEEDORES
+-- ==========================================
+
+INSERT INTO proveedor (nombre, contacto, telefono, email, direccion, activo) VALUES
+    ('Frutería Andina',      'Carmen Quispe',  '22789012', 'ventas@frutandina.com',   'Mercado Rodríguez, La Paz',     TRUE),
+    ('Especias Bolivia',     'Marco Flores',   '22890123', 'info@especiasbol.com',    'Calle Illimani 456, La Paz',    TRUE),
+    ('Importadora Gourmet',  'Lucia Vargas',   '22901234', 'pedidos@impgourmet.com',  'Av. Arce 1200, La Paz',         TRUE);
+
+-- ==========================================
+-- COMPRAS
+-- ==========================================
+
+INSERT INTO compra (id_proveedor, id_usuario, fecha, total, estado) VALUES
+    (5, 4, '2024-12-05 09:00:00', 540.00,  'CONFIRMADA'),  -- Frutería Andina
+    (6, 4, '2024-12-08 10:00:00', 380.00,  'CONFIRMADA'),  -- Especias Bolivia
+    (7, 4, '2024-12-10 11:30:00', 720.00,  'CONFIRMADA'),  -- Importadora Gourmet
+    (3, 4, '2024-12-12 08:00:00', 850.00,  'CONFIRMADA'),  -- Lácteos del Norte
+    (4, 4, '2024-12-15 09:30:00', 460.00,  'CONFIRMADA'),  -- Repostería Insumos
+    (2, 4, '2025-01-03 08:45:00', 900.00,  'CONFIRMADA'),  -- Café Yungas
+    (1, 4, '2025-01-05 10:00:00', 310.00,  'BORRADOR');    -- Distribuidora La Paz
+
+-- ==========================================
+-- DETALLE_COMPRA (lotes nuevos)
+-- ==========================================
+
+-- Compra 6: frutas y especias (Frutería Andina)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (6, 21, 3000, 3000, 0.12, '2024-12-20'),   -- frutillas
+    (6, 22, 2000, 2000, 0.18, '2025-06-01');   -- miel
+
+-- Compra 7: especias (Especias Bolivia)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (7, 11, 1000, 1000, 0.08, '2025-12-01'),   -- canela
+    (7, 12, 800,  800,  0.10, '2025-12-01'),   -- jengibre
+    (7, 15, 300,  300,  0.25, '2025-12-01'),   -- nuez moscada
+    (7, 17, 2000, 2000, 0.02, '2026-01-01');   -- sal
+
+-- Compra 8: insumos gourmet (Importadora Gourmet)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (8, 16, 2000, 2000, 0.28, '2025-10-01'),   -- almendras
+    (8, 20, 3000, 3000, 0.19, '2024-12-25'),   -- queso crema
+    (8, 13, 2000, 2000, 0.14, '2025-08-01'),   -- cacao en polvo
+    (8, 14, 4000, 4000, 0.11, '2025-03-01');   -- leche condensada
+
+-- Compra 9: lácteos (Lácteos del Norte)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (9, 1,  15000, 15000, 0.05, '2024-12-28'),  -- leche
+    (9, 8,  4000,  4000,  0.12, '2024-12-22'),  -- crema
+    (9, 6,  3000,  3000,  0.09, '2025-02-01');  -- mantequilla
+
+-- Compra 10: repostería (Repostería Insumos)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (10, 7,  2000, 2000, 0.22, '2025-08-01'),   -- chocolate negro
+    (10, 10, 800,  800,  0.11, '2025-10-01'),   -- polvo hornear
+    (10, 19, 600,  600,  0.15, '2025-06-01'),   -- levadura
+    (10, 18, 3000, 3000, 0.04, '2026-01-01');   -- aceite vegetal
+
+-- Compra 11: café nuevo lote (Café Yungas)
+INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento) VALUES
+    (11, 2, 6000, 6000, 0.17, '2025-07-01'),   -- café molido
+    (11, 3, 4000, 4000, 0.07, '2026-06-01');   -- azúcar
+
+-- ==========================================
+-- VENTAS
+-- ==========================================
+
+INSERT INTO venta (id_usuario, fecha, estado) VALUES
+    (2,  '2024-12-01 08:00:00', 'PAGADA'),
+    (6,  '2024-12-01 09:30:00', 'PAGADA'),
+    (3,  '2024-12-02 10:15:00', 'PAGADA'),
+    (7,  '2024-12-02 11:00:00', 'PAGADA'),
+    (2,  '2024-12-03 08:45:00', 'PAGADA'),
+    (6,  '2024-12-03 14:00:00', 'PAGADA'),
+    (3,  '2024-12-04 09:00:00', 'PAGADA'),
+    (2,  '2024-12-05 10:30:00', 'PAGADA'),
+    (7,  '2024-12-06 11:15:00', 'PAGADA'),
+    (6,  '2024-12-06 15:00:00', 'PAGADA');
+
+-- ==========================================
+-- DETALLE_VENTA
+-- ==========================================
+
+-- Venta 6
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (6, 2,  2, 22.00),   -- 2 Café Latte
+    (6, 7,  1, 25.00),   -- 1 Chai Latte
+    (6, 8,  2, 30.00);   -- 2 Brownie
+
+-- Venta 7
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (7, 1,  3, 15.00),   -- 3 Café Americano
+    (7, 11, 2, 22.00);   -- 2 Chocolate caliente
+
+-- Venta 8
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (8, 9,  1, 40.00),   -- 1 Cheesecake
+    (8, 3,  1, 22.00),   -- 1 Capuchino
+    (8, 5,  2, 18.00);   -- 2 Medialunas
+
+-- Venta 9
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (9, 4,  1, 35.00),   -- 1 Torta Chocolate
+    (9, 6,  2, 28.00);   -- 2 Café Moca
+
+-- Venta 10
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (10, 12, 2, 25.00),  -- 2 Cacao Especiado
+    (10, 10, 1, 20.00);  -- 1 Pan de nuez
+
+-- Venta 11
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (11, 2,  1, 22.00),  -- 1 Café Latte
+    (11, 7,  2, 25.00),  -- 2 Chai Latte
+    (11, 9,  1, 40.00);  -- 1 Cheesecake
+
+-- Venta 12
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (12, 1,  4, 15.00),  -- 4 Café Americano
+    (12, 8,  1, 30.00);  -- 1 Brownie
+
+-- Venta 13
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (13, 3,  3, 22.00),  -- 3 Capuchino
+    (13, 4,  1, 35.00),  -- 1 Torta Chocolate
+    (13, 11, 1, 22.00);  -- 1 Chocolate caliente
+
+-- Venta 14
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (14, 6,  1, 28.00),  -- 1 Café Moca
+    (14, 12, 3, 25.00),  -- 3 Cacao Especiado
+    (14, 10, 2, 20.00);  -- 2 Pan de nuez
+
+-- Venta 15
+INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
+    (15, 5,  3, 18.00),  -- 3 Medialunas
+    (15, 2,  2, 22.00),  -- 2 Café Latte
+    (15, 9,  1, 40.00);  -- 1 Cheesecake
+
+-- ==========================================
+-- CONSUMO_LOTES (FIFO)
+-- ==========================================
+
+-- Venta 6, detalle 11: 2x Café Latte = 36g café + 400ml leche
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (11, 1,  36,  '2024-12-01 08:00:00'),  -- café lote 1
+    (11, 3,  400, '2024-12-01 08:00:00');  -- leche lote 1
+
+-- Venta 6, detalle 12: 1x Chai Latte = 200ml leche + 5g canela + 3g jengibre + 15g azúcar
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (12, 3,  200, '2024-12-01 08:00:00'),  -- leche lote 1
+    (12, 24, 5,   '2024-12-01 08:00:00'),  -- canela lote 1
+    (12, 25, 3,   '2024-12-01 08:00:00'),  -- jengibre lote 1
+    (12, 2,  15,  '2024-12-01 08:00:00');  -- azúcar lote 1
+
+-- Venta 6, detalle 13: 2x Brownie = 200g chocolate + 160g harina + 4 huevos + 180g mantequilla + 240g azúcar + 60g cacao
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (13, 10, 200, '2024-12-01 08:00:00'),  -- chocolate lote 1
+    (13, 7,  160, '2024-12-01 08:00:00'),  -- harina lote 1
+    (13, 8,  4,   '2024-12-01 08:00:00'),  -- huevos lote 1
+    (13, 5,  180, '2024-12-01 08:00:00'),  -- mantequilla lote 1
+    (13, 2,  240, '2024-12-01 08:00:00'),  -- azúcar lote 1
+    (13, 29, 60,  '2024-12-01 08:00:00');  -- cacao lote 1
+
+-- Venta 7, detalle 14: 3x Café Americano = 54g café
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (14, 1,  54,  '2024-12-01 09:30:00');  -- café lote 1
+
+-- Venta 7, detalle 15: 2x Chocolate caliente = 50g cacao + 400ml leche + 100ml crema + 40g azúcar
+INSERT INTO consumo_lotes (id_detalle_venta, id_detalle_compra, cantidad, fecha) VALUES
+    (15, 29, 50,  '2024-12-01 09:30:00'),  -- cacao lote 1
+    (15, 3,  400, '2024-12-01 09:30:00'),  -- leche lote 1
+    (15, 4,  100, '2024-12-01 09:30:00'),  -- crema lote 1
+    (15, 2,  40,  '2024-12-01 09:30:00');  -- azúcar lote 1
