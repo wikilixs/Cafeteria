@@ -176,4 +176,4 @@ SELECT
   COALESCE(SUM(dv.cantidad * dv.precio_unitario), 0) AS total
 FROM Venta v
 LEFT JOIN DetalleVenta dv ON dv.idVenta = v.idVenta
-GROUP BY v.idVenta;
+GROUP BY v.idVenta; 
