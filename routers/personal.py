@@ -55,6 +55,7 @@ async def listar_por_id(id: int, conn=Depends(get_conexion)):
     
 @router.post("/")
 async def crear_personal(personal: PersonalInsert, conn=Depends(get_conexion)):
+    print(f"Ingresando personal: {personal}")
     consulta = """
         INSERT INTO personal (id_rol, nombres, primer_apellido, segundo_apellido, telefono, fecha_nacimiento, fecha_contratacion, activo) 
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_personal, id_rol, nombres, primer_apellido, segundo_apellido, telefono, fecha_nacimiento, fecha_contratacion, activo;
