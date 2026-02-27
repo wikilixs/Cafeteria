@@ -1,0 +1,179 @@
+-- ================================
+-- ENUMS (estados sí está bien)
+-- ================================
+CREATE TYPE estado_compra AS ENUM ('BORRADOR', 'CONFIRMADA', 'ANULADA');
+CREATE TYPE estado_venta  AS ENUM ('PENDIENTE', 'PAGADA', 'ANULADA');
+
+-- ================================
+-- ROL
+-- ================================
+CREATE TABLE Rol (
+    idRol SERIAL PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL UNIQUE
+);
+
+-- ================================
+-- PERSONAL
+-- ================================
+CREATE TABLE Personal (
+    idPersonal SERIAL PRIMARY KEY,
+    idRol INT NOT NULL,
+    nombres VARCHAR(80) NOT NULL,
+    primerApellido VARCHAR(80) NOT NULL,
+    segundoApellido VARCHAR(80),
+    telefono VARCHAR(30),
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    FOREIGN KEY (idRol) REFERENCES Rol(idRol)
+);
+
+-- ================================
+-- USUARIO
+-- ================================
+CREATE TABLE Usuario (
+    idUsuario SERIAL PRIMARY KEY,
+    idPersonal INT UNIQUE NOT NULL,
+    username VARCHAR(60) NOT NULL UNIQUE,
+    email VARCHAR(120) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    FOREIGN KEY (idPersonal) REFERENCES Personal(idPersonal)
+);
+
+-- ================================
+-- ITEM (supertipo)
+-- ================================
+CREATE TABLE Item (
+    idItem SERIAL PRIMARY KEY,
+    nombre VARCHAR(120) NOT NULL UNIQUE,
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- ================================
+-- PRODUCTO (subtipo)
+-- ================================
+CREATE TABLE Producto (
+    idItem INT PRIMARY KEY,
+    precio_venta NUMERIC(10,2) NOT NULL CHECK (precio_venta >= 0),
+    FOREIGN KEY (idItem) REFERENCES Item(idItem) ON DELETE CASCADE
+);
+
+-- ================================
+-- INSUMO (subtipo)
+-- ================================
+CREATE TABLE Insumo (
+    idItem INT PRIMARY KEY,
+    unidad VARCHAR(20) NOT NULL, -- g, ml, unidad, etc.
+    stock_minimo NUMERIC(12,3) NOT NULL DEFAULT 0 CHECK (stock_minimo >= 0),
+    FOREIGN KEY (idItem) REFERENCES Item(idItem) ON DELETE CASCADE
+);
+
+-- ================================
+-- PROVEEDOR
+-- ================================
+CREATE TABLE Proveedor (
+    idProveedor SERIAL PRIMARY KEY,
+    nombre VARCHAR(120) NOT NULL,
+    telefono VARCHAR(30),
+    email VARCHAR(120),
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- ================================
+-- COMPRA (sin total -> 3FN)
+-- ================================
+CREATE TABLE Compra (
+    idCompra SERIAL PRIMARY KEY,
+    idProveedor INT,
+    idUsuario INT NOT NULL,
+    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    estado estado_compra NOT NULL DEFAULT 'BORRADOR',
+    FOREIGN KEY (idProveedor) REFERENCES Proveedor(idProveedor),
+    FOREIGN KEY (idUsuario) REFERENCES Usuario(idUsuario)
+);
+
+-- ================================
+-- DETALLE COMPRA (LOTE) -> SOLO INSUMOS
+-- ================================
+CREATE TABLE DetalleCompra (
+    idDetalleCompra SERIAL PRIMARY KEY,
+    idCompra INT NOT NULL,
+    idItem INT NOT NULL, -- debe existir en Insumo
+    cantidad NUMERIC(12,3) NOT NULL CHECK (cantidad > 0),
+    cantidad_disponible NUMERIC(12,3) NOT NULL CHECK (cantidad_disponible >= 0),
+    costo_unitario NUMERIC(12,4) NOT NULL CHECK (costo_unitario >= 0),
+    fecha_vencimiento DATE,
+    FOREIGN KEY (idCompra) REFERENCES Compra(idCompra) ON DELETE CASCADE,
+    FOREIGN KEY (idItem) REFERENCES Insumo(idItem), -- fuerza que sea INSUMO
+    CHECK (cantidad_disponible <= cantidad)
+);
+
+-- ================================
+-- VENTA (sin total -> 3FN)
+-- ================================
+CREATE TABLE Venta (
+    idVenta SERIAL PRIMARY KEY,
+    idUsuario INT NOT NULL,
+    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    estado estado_venta NOT NULL DEFAULT 'PENDIENTE',
+    FOREIGN KEY (idUsuario) REFERENCES Usuario(idUsuario)
+);
+
+-- ================================
+-- DETALLE VENTA -> SOLO PRODUCTOS
+-- ================================
+CREATE TABLE DetalleVenta (
+    idDetalleVenta SERIAL PRIMARY KEY,
+    idVenta INT NOT NULL,
+    idItem INT NOT NULL, -- debe existir en Producto
+    cantidad NUMERIC(12,3) NOT NULL CHECK (cantidad > 0),
+    precio_unitario NUMERIC(10,2) NOT NULL CHECK (precio_unitario >= 0),
+    FOREIGN KEY (idVenta) REFERENCES Venta(idVenta) ON DELETE CASCADE,
+    FOREIGN KEY (idItem) REFERENCES Producto(idItem) -- fuerza que sea PRODUCTO
+);
+
+-- ================================
+-- DETALLE RECETA (producto -> insumo)
+-- ================================
+CREATE TABLE DetalleReceta (
+    idDetalleReceta SERIAL PRIMARY KEY,
+    idItem INT NOT NULL,              -- Producto
+    idItemComponente INT NOT NULL,    -- Insumo
+    cantidad NUMERIC(12,3) NOT NULL CHECK (cantidad > 0),
+    FOREIGN KEY (idItem) REFERENCES Producto(idItem),
+    FOREIGN KEY (idItemComponente) REFERENCES Insumo(idItem),
+    UNIQUE (idItem, idItemComponente),
+    CHECK (idItem <> idItemComponente)
+);
+
+-- ================================
+-- CONSUMO LOTES (FIFO) -> 3FN (sin idItem)
+-- ================================
+CREATE TABLE ConsumoLotes (
+    idConsumo SERIAL PRIMARY KEY,
+    idDetalleVenta INT NOT NULL,
+    idDetalleCompra INT NOT NULL,
+    cantidad NUMERIC(12,3) NOT NULL CHECK (cantidad > 0),
+    costo_unitario NUMERIC(12,4) NOT NULL CHECK (costo_unitario >= 0),
+    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (idDetalleVenta) REFERENCES DetalleVenta(idDetalleVenta) ON DELETE CASCADE,
+    FOREIGN KEY (idDetalleCompra) REFERENCES DetalleCompra(idDetalleCompra)
+);
+
+-- ================================
+-- VISTAS OPCIONALES (totales derivados)
+-- ================================
+CREATE VIEW v_total_compra AS
+SELECT
+  c.idCompra,
+  COALESCE(SUM(dc.cantidad * dc.costo_unitario), 0) AS total
+FROM Compra c
+LEFT JOIN DetalleCompra dc ON dc.idCompra = c.idCompra
+GROUP BY c.idCompra;
+
+CREATE VIEW v_total_venta AS
+SELECT
+  v.idVenta,
+  COALESCE(SUM(dv.cantidad * dv.precio_unitario), 0) AS total
+FROM Venta v
+LEFT JOIN DetalleVenta dv ON dv.idVenta = v.idVenta
+GROUP BY v.idVenta;
