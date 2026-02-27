@@ -50,7 +50,6 @@ async def listar_por_id(id: int, conn=Depends(get_conexion)):
     
 @router.post("/")
 async def crear_producto(producto: ProductoInsert, conn=Depends(get_conexion)):
-    print(f"Ingresando producto")
     consulta = """
         INSERT INTO producto (nombre, descripcion, unidad_medida, precio_venta, activo) 
         VALUES (%s, %s, %s, %s, %s) RETURNING id_producto, nombre, descripcion, unidad_medida, precio_venta, activo;
