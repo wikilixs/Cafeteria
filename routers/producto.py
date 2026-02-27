@@ -50,6 +50,7 @@ async def listar_por_id(id: int, conn=Depends(get_conexion)):
     
 @router.post("/")
 async def crear_producto(producto: ProductoInsert, conn=Depends(get_conexion)):
+    print(f"Ingresando producto")
     consulta = """
         INSERT INTO producto (nombre, descripcion, unidad_medida, precio_venta, activo) 
         VALUES (%s, %s, %s, %s, %s) RETURNING id_producto, nombre, descripcion, unidad_medida, precio_venta, activo;
@@ -61,7 +62,8 @@ async def crear_producto(producto: ProductoInsert, conn=Depends(get_conexion)):
     except Exception as e:
         print(f"Error creando producto: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error al crear el producto")
-    
+
+ 
 @router.put("/{id}")
 async def actualizar_producto(id: int, producto: ProductoInsert, conn=Depends(get_conexion)):
     consulta = """
