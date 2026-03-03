@@ -6,26 +6,26 @@ from datetime import date
 
 router = APIRouter()
 
-class Personal(BaseModel):
+class PersonalBase(BaseModel):
     id_personal:        int
     id_rol:             int
+    ci:                 int
     nombres:            str
     primer_apellido:    str
     segundo_apellido:   str | None = None
     telefono:           str | None = None
     fecha_nacimiento:   date | None = None
     fecha_contratacion: date | None = None
-    activo:             bool | None = True
-
+    activo:             bool = True
 class PersonalInsert(BaseModel):
     id_rol:             int
+    ci:                 int
     nombres:            str
     primer_apellido:    str
     segundo_apellido:   str | None = None
     telefono:           str | None = None
     fecha_nacimiento:   date | None = None
     fecha_contratacion: date | None = None
-    activo:             bool | None = True
 
 @router.get("/")
 async def listar(conn=Depends(get_conexion)):
@@ -39,7 +39,7 @@ async def listar(conn=Depends(get_conexion)):
     except Exception as e:
         print(f"Error listado gral de Psycopg: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
-    
+
 @router.get("/{id}")
 async def listar_por_id(id: int, conn=Depends(get_conexion)):
     consulta = """
@@ -55,14 +55,22 @@ async def listar_por_id(id: int, conn=Depends(get_conexion)):
     
 @router.post("/")
 async def crear_personal(personal: PersonalInsert, conn=Depends(get_conexion)):
-    print(f"Ingresando personal: {personal}")
     consulta = """
-        INSERT INTO personal (id_rol, nombres, primer_apellido, segundo_apellido, telefono, fecha_nacimiento, fecha_contratacion, activo) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_personal, id_rol, nombres, primer_apellido, segundo_apellido, telefono, fecha_nacimiento, fecha_contratacion, activo;
+        INSERT INTO personal (id_rol, ci, nombres, primer_apellido, segundo_apellido, telefono, fecha_nacimiento, fecha_contratacion) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_personal;
     """
     try:
         async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (personal.id_rol, personal.nombres, personal.primer_apellido, personal.segundo_apellido, personal.telefono, personal.fecha_nacimiento, personal.fecha_contratacion, personal.activo))
+            await cursor.execute(consulta, (
+                personal.id_rol,
+                personal.ci,
+                personal.nombres,
+                personal.primer_apellido,
+                personal.segundo_apellido,
+                personal.telefono,
+                personal.fecha_nacimiento,
+                personal.fecha_contratacion
+            ))
             return await cursor.fetchone()
     except Exception as e:
         print(f"Error creando personal: {e}")
@@ -71,12 +79,22 @@ async def crear_personal(personal: PersonalInsert, conn=Depends(get_conexion)):
 @router.put("/{id}")
 async def actualizar_personal(id: int, personal: PersonalInsert, conn=Depends(get_conexion)):
     consulta = """
-        UPDATE personal SET id_rol = %s, nombres = %s, primer_apellido = %s, segundo_apellido = %s, telefono = %s, fecha_nacimiento = %s, fecha_contratacion = %s, activo = %s 
-        WHERE id_personal = %s RETURNING id_personal, id_rol, nombres, primer_apellido, segundo_apellido, telefono, fecha_nacimiento, fecha_contratacion, activo;
+        UPDATE personal SET id_rol = %s, ci = %s, nombres = %s, primer_apellido = %s, segundo_apellido = %s, telefono = %s, fecha_nacimiento = %s, fecha_contratacion = %s 
+        WHERE id_personal = %s RETURNING id_personal;
     """
     try:
         async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (personal.id_rol, personal.nombres, personal.primer_apellido, personal.segundo_apellido, personal.telefono, personal.fecha_nacimiento, personal.fecha_contratacion, personal.activo, id))
+            await cursor.execute(consulta, (
+                personal.id_rol,
+                personal.ci,
+                personal.nombres,
+                personal.primer_apellido,
+                personal.segundo_apellido,
+                personal.telefono,
+                personal.fecha_nacimiento,
+                personal.fecha_contratacion,
+                id
+            ))
             resultado = await cursor.fetchone()
             if resultado is None:
                 raise HTTPException(status_code=404, detail="Personal no encontrado")
@@ -96,8 +114,7 @@ async def eliminar_personal(id: int, conn=Depends(get_conexion)):
             resultado = await cursor.fetchone()
             if resultado is None:
                 raise HTTPException(status_code=404, detail="Personal no encontrado")
-            return {"message": "Personal eliminado exitosamente"}
+            return resultado
     except Exception as e:
         print(f"Error eliminando personal: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error al eliminar el personal")
-

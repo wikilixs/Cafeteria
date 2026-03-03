@@ -2,10 +2,15 @@ from fastapi import FastAPI, Depends, HTTPException
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import dict_row
 from contextlib import asynccontextmanager
-
+from .config import settings
 app = FastAPI()
 
-DB_URL = "postgresql://wikilixs:maria-a-comer@localhost:5432/cafeteria"
+DB_URL = (
+    f"postgresql://{settings.user}:{settings.password}"
+    f"@{settings.host}:{settings.port}/{settings.database}"
+)
+
+
 pool=AsyncConnectionPool(conninfo=DB_URL, open=False)
 
 @asynccontextmanager
