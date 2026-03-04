@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from config.conexionDB import pool, get_conexion, app
-from routers import rol,personal, usuario
+from routers import rol,personal, usuario, detalle_compra, compra, detalle_venta, movimiento_inventario, venta
 from middlewares.corps import add_cors
 from middlewares.errors import add_error_handlers
 from middlewares.login import setup_logging
@@ -16,8 +16,11 @@ add_error_handlers(app)
 app.include_router(rol.router, prefix="/rol")
 app.include_router(personal.router, prefix="/personal")
 app.include_router(usuario.router, prefix="/usuario")
-
-
+app.include_router(detalle_compra.router, prefix="/detalle_compra")
+app.include_router(compra.router, prefix="/compra")
+app.include_router(detalle_venta.router, prefix="/detalle_venta")
+app.include_router(movimiento_inventario.router, prefix="/movimiento_inventario")
+app.include_router(venta.router, prefix="/venta")
 
 
 def main():
