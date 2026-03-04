@@ -1,158 +1,161 @@
--- ==========================================
--- ELIMINAR TABLAS Y TIPOS
--- ==========================================
-
-DROP TABLE IF EXISTS consumo_lotes    CASCADE;
-DROP TABLE IF EXISTS detalle_venta    CASCADE;
-DROP TABLE IF EXISTS detalle_compra   CASCADE;
-DROP TABLE IF EXISTS venta            CASCADE;
-DROP TABLE IF EXISTS compra           CASCADE;
-DROP TABLE IF EXISTS producto_insumo  CASCADE;
-DROP TABLE IF EXISTS proveedor        CASCADE;
-DROP TABLE IF EXISTS producto         CASCADE;
-DROP TABLE IF EXISTS insumo           CASCADE;
-DROP TABLE IF EXISTS usuario          CASCADE;
-DROP TABLE IF EXISTS personal         CASCADE;
-DROP TABLE IF EXISTS rol              CASCADE;
-
-DROP TYPE IF EXISTS estado_compra;
-DROP TYPE IF EXISTS estado_venta;
-
--- ==========================================
--- ENUMS
--- ==========================================
-
-CREATE TYPE estado_compra AS ENUM ('BORRADOR', 'CONFIRMADA', 'ANULADA');
-CREATE TYPE estado_venta  AS ENUM ('PENDIENTE', 'PAGADA', 'ANULADA');
-
--- ==========================================
--- CATÁLOGOS BASE
--- ==========================================
 
 CREATE TABLE rol (
-    id_rol serial      PRIMARY KEY,
-    nombre varchar(30) UNIQUE NOT NULL
+    id_rol  SERIAL PRIMARY KEY,
+    nombre  VARCHAR(30) NOT NULL UNIQUE
 );
 
--- ==========================================
--- PERSONAL Y ACCESO
--- ==========================================
 
 CREATE TABLE personal (
-    id_personal        SERIAL      PRIMARY KEY,
-    id_rol             INT         NOT NULL REFERENCES rol(id_rol),
-    ci                 INT         NOT NULL UNIQUE, 
-    nombres            VARCHAR(80) NOT NULL,
-    primer_apellido    VARCHAR(80) NOT NULL,
-    segundo_apellido   VARCHAR(80),
-    telefono           VARCHAR(30),
-    fecha_nacimiento   DATE,
-    fecha_contratacion DATE,
-    activo             BOOLEAN     NOT NULL DEFAULT TRUE
+    id_personal      SERIAL PRIMARY KEY,
+    id_rol           INT NOT NULL,
+    ci               INT NOT NULL,
+    nombres          VARCHAR(80) NOT NULL,
+    primer_apellido  VARCHAR(80) NOT NULL,
+    segundo_apellido VARCHAR(80),
+    fecha_nacimiento DATE,
+    telefono         VARCHAR(30),
+    activo           BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_ingreso    DATE DEFAULT CURRENT_DATE,
+
+    FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
 );
 
+-- cada empleado puede tener un usuario para entrar al sistema
 CREATE TABLE usuario (
-    id_usuario    SERIAL       PRIMARY KEY,
-    id_personal   INT          UNIQUE NOT NULL REFERENCES personal(id_personal),
-    username      VARCHAR(60)  UNIQUE NOT NULL,
-    email         VARCHAR(120) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL
+    id_usuario    SERIAL PRIMARY KEY,
+    id_personal   INT NOT NULL UNIQUE,
+    username      VARCHAR(60) NOT NULL UNIQUE,
+    email         VARCHAR(120) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    activo        BOOLEAN NOT NULL DEFAULT TRUE,
+
+    FOREIGN KEY (id_personal) REFERENCES personal(id_personal)
 );
 
--- ==========================================
--- INSUMOS
--- ==========================================
 
-CREATE TABLE insumo (
-    id_insumo     SERIAL        PRIMARY KEY,
-    nombre        VARCHAR(120)  UNIQUE NOT NULL,
-    categoria     VARCHAR(60),
-    unidad_medida VARCHAR(20),
-    stock_minimo  NUMERIC(12,3) DEFAULT 0,
-    activo        BOOLEAN       NOT NULL DEFAULT TRUE
+-- categorias para organizar los productos (bebidas, comidas, etc)
+CREATE TABLE categoria_producto (
+    id_categoria SERIAL PRIMARY KEY,
+    nombre       VARCHAR(60) NOT NULL UNIQUE
 );
 
--- ==========================================
--- PRODUCTOS
--- ==========================================
-
+-- los productos son lo que se vende al cliente
 CREATE TABLE producto (
-    id_producto   SERIAL        PRIMARY KEY,
-    nombre        VARCHAR(120)  UNIQUE NOT NULL,
-    descripcion   TEXT,
-    unidad_medida VARCHAR(20),
-    precio_venta  NUMERIC(10,2) NOT NULL DEFAULT 0,
-    activo        BOOLEAN       NOT NULL DEFAULT TRUE
+    id_producto  SERIAL PRIMARY KEY,
+    id_categoria INT,
+    nombre       VARCHAR(120) NOT NULL UNIQUE,
+    precio       DECIMAL(10,2) NOT NULL CHECK (precio >= 0),
+    precio_costo DECIMAL(10,2), -- para saber cuanto ganamos
+    activo       BOOLEAN NOT NULL DEFAULT TRUE,
+
+    FOREIGN KEY (id_categoria) REFERENCES categoria_producto(id_categoria)
 );
 
-CREATE TABLE producto_insumo (
-    id_producto_insumo SERIAL        PRIMARY KEY,
-    id_producto        INT           NOT NULL REFERENCES producto(id_producto),
-    id_insumo          INT           NOT NULL REFERENCES insumo(id_insumo),
-    cantidad           NUMERIC(12,3) NOT NULL,
-    UNIQUE (id_producto, id_insumo)
+-- los insumos son los ingredientes que se usan para hacer los productos
+CREATE TABLE insumo (
+    id_insumo    SERIAL PRIMARY KEY,
+    nombre       VARCHAR(120) NOT NULL UNIQUE,
+    unidad       VARCHAR(20) NOT NULL, -- puede ser: g, ml, unidad
+    stock_actual DECIMAL(12,2) NOT NULL DEFAULT 0 CHECK (stock_actual >= 0),
+    stock_minimo DECIMAL(12,2) NOT NULL DEFAULT 0, -- si baja de esto hay que comprar
+    stock_maximo DECIMAL(12,2),                    -- si sube de esto tenemos demasiado
+    activo       BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- ==========================================
--- PROVEEDORES Y COMPRAS
--- ==========================================
-
+-- los proveedores son de donde compramos los insumos
 CREATE TABLE proveedor (
-    id_proveedor INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_proveedor SERIAL PRIMARY KEY,
     nombre       VARCHAR(120) NOT NULL,
-    contacto     VARCHAR(80),
     telefono     VARCHAR(30),
     email        VARCHAR(120),
-    direccion    VARCHAR(200),
-    activo       BOOLEAN      NOT NULL DEFAULT TRUE
+    nit          VARCHAR(30),
+    activo       BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+
+CREATE TABLE receta (
+    id_receta   SERIAL PRIMARY KEY,
+    id_producto INT NOT NULL,
+    id_insumo   INT NOT NULL,
+    cantidad    DECIMAL(12,2) NOT NULL CHECK (cantidad > 0),
+
+    -- no puedo repetir el mismo ingrediente en el mismo producto
+    UNIQUE (id_producto, id_insumo),
+
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto),
+    FOREIGN KEY (id_insumo)   REFERENCES insumo(id_insumo)
+);
+
 
 CREATE TABLE compra (
-    id_compra    SERIAL        PRIMARY KEY,
-    id_proveedor INT           REFERENCES proveedor(id_proveedor),
-    id_usuario   INT           NOT NULL REFERENCES usuario(id_usuario),
-    fecha        TIMESTAMP     NOT NULL DEFAULT NOW(),
-    total        NUMERIC(12,2) NOT NULL DEFAULT 0,
-    estado       estado_compra NOT NULL DEFAULT 'BORRADOR'
+    id_compra    SERIAL PRIMARY KEY,
+    id_proveedor INT,
+    id_usuario   INT NOT NULL, -- quien hizo la compra
+    fecha        TIMESTAMP NOT NULL DEFAULT NOW(),
+    estado       estado_compra NOT NULL DEFAULT 'BORRADOR',
+    observacion  TEXT,
+
+    FOREIGN KEY (id_proveedor) REFERENCES proveedor(id_proveedor),
+    FOREIGN KEY (id_usuario)   REFERENCES usuario(id_usuario)
 );
+
 
 CREATE TABLE detalle_compra (
-    id_detalle_compra   SERIAL        PRIMARY KEY,
-    id_compra           INT           NOT NULL REFERENCES compra(id_compra) ON DELETE CASCADE,
-    id_insumo           INT           NOT NULL REFERENCES insumo(id_insumo),
-    cantidad            NUMERIC(12,3) NOT NULL,
-    cantidad_disponible NUMERIC(12,3) NOT NULL,
-    costo_unitario      NUMERIC(12,4) NOT NULL,
-    fecha_vencimiento   DATE
+    id_detalle_compra SERIAL PRIMARY KEY,
+    id_compra         INT NOT NULL,
+    id_insumo         INT NOT NULL,
+    cantidad          DECIMAL(12,2) NOT NULL CHECK (cantidad > 0),
+    costo_unitario    DECIMAL(12,2) NOT NULL CHECK (costo_unitario >= 0),
+
+    FOREIGN KEY (id_compra) REFERENCES compra(id_compra),
+    FOREIGN KEY (id_insumo) REFERENCES insumo(id_insumo)
 );
 
--- ==========================================
--- VENTAS
--- ==========================================
+
 
 CREATE TABLE venta (
-    id_venta   SERIAL       PRIMARY KEY,
-    id_usuario INT          NOT NULL REFERENCES usuario(id_usuario),
-    fecha      TIMESTAMP    NOT NULL DEFAULT NOW(),
-    estado     estado_venta NOT NULL DEFAULT 'PENDIENTE'
+    id_venta       SERIAL PRIMARY KEY,
+    id_usuario     INT NOT NULL, -- el cajero que atendio
+    fecha          TIMESTAMP NOT NULL DEFAULT NOW(),
+    estado         estado_venta NOT NULL DEFAULT 'EN_PROCESO',
+    metodo_pago    metodo_pago NOT NULL DEFAULT 'EFECTIVO',
+    subtotal       DECIMAL(12,2) NOT NULL DEFAULT 0,
+    total          DECIMAL(12,2) NOT NULL DEFAULT 0 CHECK (total >= 0),
+    monto_recibido DECIMAL(12,2), -- plata que dio el cliente
+    cambio         DECIMAL(12,2), -- plata que le devolvemos
+    nota           TEXT,
+
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
 
+-- que productos se vendieron en cada venta
 CREATE TABLE detalle_venta (
-    id_detalle_venta SERIAL        PRIMARY KEY,
-    id_venta         INT           NOT NULL REFERENCES venta(id_venta) ON DELETE CASCADE,
-    id_producto      INT           NOT NULL REFERENCES producto(id_producto),
-    cantidad         NUMERIC(12,3) NOT NULL,
-    precio_unitario  NUMERIC(10,2) NOT NULL
+    id_detalle_venta SERIAL PRIMARY KEY,
+    id_venta         INT NOT NULL,
+    id_producto      INT NOT NULL,
+    cantidad         INT NOT NULL CHECK (cantidad > 0),
+    precio_unitario  DECIMAL(10,2) NOT NULL CHECK (precio_unitario >= 0),
+    subtotal         DECIMAL(12,2) GENERATED ALWAYS AS (cantidad * precio_unitario) STORED,
+
+    FOREIGN KEY (id_venta)    REFERENCES venta(id_venta),
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
 );
 
--- ==========================================
--- TRAZABILIDAD DE LOTES (FIFO/FEFO)
--- ==========================================
 
-CREATE TABLE consumo_lotes (
-    id_consumo        SERIAL        PRIMARY KEY,
-    id_detalle_venta  INT           NOT NULL REFERENCES detalle_venta(id_detalle_venta) ON DELETE CASCADE,
-    id_detalle_compra INT           NOT NULL REFERENCES detalle_compra(id_detalle_compra),
-    cantidad          NUMERIC(12,3) NOT NULL,
-    fecha             TIMESTAMP     NOT NULL DEFAULT NOW()
+-- aqui registro cada vez que entra o sale algo del inventario
+-- sirve para saber el historial completo de movimientos
+CREATE TABLE movimiento_inventario (
+    id_movimiento    SERIAL PRIMARY KEY,
+    tipo             tipo_mov_inv NOT NULL,
+    id_insumo        INT NOT NULL,
+    fecha            TIMESTAMP NOT NULL DEFAULT NOW(),
+    cantidad         DECIMAL(12,2) NOT NULL CHECK (cantidad > 0),
+    signo            SMALLINT NOT NULL CHECK (signo IN (1, -1)), -- 1 entra, -1 sale
+    referencia_tabla VARCHAR(30), -- de donde viene el movimiento (compra, venta...)
+    referencia_id    INT,         -- el id de esa tabla
+    id_usuario       INT NOT NULL,
+    nota             TEXT,
+
+    FOREIGN KEY (id_insumo)  REFERENCES insumo(id_insumo),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
