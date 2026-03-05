@@ -89,7 +89,7 @@ async def obtener_reporte_compras(conn, fecha_inicio: Optional[str] = None, fech
             c.estado,
             c.observacion,
             p.nombre AS proveedor,
-            u.nombre AS usuario,
+            CONCAT(per.nombres, ' ', per.primer_apellido, ' ', per.segundo_apellido) AS usuario,
             dc.id_insumo,
             i.nombre AS insumo,
             dc.cantidad,
@@ -98,6 +98,7 @@ async def obtener_reporte_compras(conn, fecha_inicio: Optional[str] = None, fech
         FROM compra c
         LEFT JOIN proveedor p ON c.id_proveedor = p.id_proveedor
         JOIN usuario u ON c.id_usuario = u.id_usuario
+        JOIN personal per ON u.id_personal = per.id_personal
         JOIN detalle_compra dc ON c.id_compra = dc.id_compra
         JOIN insumo i ON dc.id_insumo = i.id_insumo
         WHERE 1=1
@@ -119,9 +120,8 @@ async def obtener_reporte_compras(conn, fecha_inicio: Optional[str] = None, fech
     try:
         async with conn.cursor() as cur:
             await cur.execute(consulta, params)
-            cols = [desc[0] for desc in cur.description]
             rows = await cur.fetchall()
-            return [dict(zip(cols, row)) for row in rows]
+            return rows
     except Exception as e:
         logger.error(f"Error obteniendo reporte de compras: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error al obtener el reporte de compras")

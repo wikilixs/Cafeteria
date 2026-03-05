@@ -159,7 +159,7 @@ async def obtener_reporte_ventas(conn, fecha_inicio: Optional[str] = None, fecha
             v.estado,
             v.total,
             v.nota,
-            u.nombre AS usuario,
+            CONCAT(per.nombres, ' ', per.primer_apellido, ' ', per.segundo_apellido) AS usuario,
             dv.id_producto,
             pr.nombre AS producto,
             dv.cantidad,
@@ -167,6 +167,7 @@ async def obtener_reporte_ventas(conn, fecha_inicio: Optional[str] = None, fecha
             (dv.cantidad * dv.precio_unitario) AS subtotal
         FROM venta v
         JOIN usuario u ON v.id_usuario = u.id_usuario
+        JOIN personal per ON u.id_personal = per.id_personal
         JOIN detalle_venta dv ON v.id_venta = dv.id_venta
         JOIN producto pr ON dv.id_producto = pr.id_producto
         WHERE 1=1
@@ -188,9 +189,8 @@ async def obtener_reporte_ventas(conn, fecha_inicio: Optional[str] = None, fecha
     try:
         async with conn.cursor() as cur:
             await cur.execute(consulta, params)
-            cols = [desc[0] for desc in cur.description]
             rows = await cur.fetchall()
-            return [dict(zip(cols, row)) for row in rows]
+            return rows
     except Exception as e:
         logger.error(f"Error obteniendo reporte de ventas: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error al obtener el reporte de ventas")

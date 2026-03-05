@@ -105,3 +105,17 @@ Traceback (most recent call last):
 KeyError: 0
 2026-03-05 10:38:39 | INFO     | services.compra_service | Registrando compra — total calculado: 28.00
 2026-03-05 10:38:39 | INFO     | services.compra_service | Compra 5 registrada correctamente
+2026-03-05 11:06:14 | WARNING  | middlewares.errors | Validation error en http://localhost:8000/compra/reporte?fecha_inicio=2000-01-01&fecha_fin=2026-03-05&: [{'type': 'int_parsing', 'loc': ('path', 'id_compra'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'reporte'}]
+2026-03-05 11:08:21 | ERROR    | services.compra_service | Error obteniendo reporte de compras: no existe la columna u.nombre
+LINE 8:             u.nombre AS usuario,
+                    ^
+HINT:  Probablemente quiera hacer referencia a la columna «p.nombre» o la columna «i.nombre».
+Traceback (most recent call last):
+  File "/home/wikilixs/Proyectos/Cafeteria/cafeteria/services/compra_service.py", line 121, in obtener_reporte_compras
+    await cur.execute(consulta, params)
+  File "/home/wikilixs/Proyectos/Cafeteria/cafeteria/.venv/lib/python3.13/site-packages/psycopg/cursor_async.py", line 117, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UndefinedColumn: no existe la columna u.nombre
+LINE 8:             u.nombre AS usuario,
+                    ^
+HINT:  Probablemente quiera hacer referencia a la columna «p.nombre» o la columna «i.nombre».
