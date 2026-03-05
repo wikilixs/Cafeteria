@@ -66,7 +66,7 @@ async def crear(categoria: CategoriaProductoCreate, conn=Depends(get_conexion)):
     consulta = """
         INSERT INTO categoria_producto (nombre)
         VALUES (%s)
-        RETURNING id_categoria_producto, nombre;
+        RETURNING id_categoria, nombre;
     """
 
     try:
@@ -92,8 +92,8 @@ async def actualizar(id: int, categoria: CategoriaProductoCreate, conn=Depends(g
     consulta = """
         UPDATE categoria_producto
         SET nombre = %s
-        WHERE id_categoria_producto = %s
-        RETURNING id_categoria_producto, nombre;
+        WHERE id_categoria = %s
+        RETURNING id_categoria, nombre;
     """
 
     try:
@@ -122,8 +122,8 @@ async def eliminar(id: int, conn=Depends(get_conexion)):
 
     consulta = """
         DELETE FROM categoria_producto
-        WHERE id_categoria_producto = %s
-        RETURNING id_categoria_producto;
+        WHERE id_categoria = %s
+        RETURNING id_categoria;
     """
 
     try:
