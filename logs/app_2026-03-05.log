@@ -1,0 +1,84 @@
+2026-03-05 00:07:58 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:07:58 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:07:58 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:07:58 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:07:59 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:07:59 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:07:59 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:07:59 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:08:01 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:08:01 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:08:01 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 00:08:01 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»

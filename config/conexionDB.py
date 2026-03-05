@@ -1,15 +1,15 @@
-from fastapi import FastAPI, Depends, HTTPException
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import dict_row
 from contextlib import asynccontextmanager
+from fastapi import FastAPI, HTTPException, Depends
 from .config import settings
-app = FastAPI()
 
-DB_URL = "postgresql://postgres:12895809@localhost:5432/cafeteria"
+DB_URL = (
+    f"postgresql://{settings.user}:{settings.password}"
+    f"@{settings.host}:{settings.port}/{settings.database}"
+)
 
-
-
-pool=AsyncConnectionPool(conninfo=DB_URL, open=False)
+pool = AsyncConnectionPool(conninfo=DB_URL, open=False)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,10 +21,12 @@ async def lifespan(app: FastAPI):
         await pool.close()
         print("🛑 Pool de conexiones cerrado")
 
+app = FastAPI(lifespan=lifespan)
+
+# ✅ Add this function
 async def get_conexion():
     async with pool.connection() as conn:
         conn.row_factory = dict_row
         yield conn
 
-app = FastAPI(lifespan=lifespan)
-
+        
