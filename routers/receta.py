@@ -12,8 +12,6 @@ class Receta(BaseModel):
     id_producto: int
     id_insumo: int
     cantidad: Decimal
-    fecha_creacion: date
-
 
 class RecetaInsert(BaseModel):
     id_producto: int
@@ -26,8 +24,7 @@ class RecetaInsert(BaseModel):
 async def listar(conn=Depends(get_conexion)):
 
     consulta = """
-        SELECT id_receta, id_producto, id_insumo, cantidad, fecha_creacion
-        FROM receta;
+        SELECT * FROM receta;
     """
 
     try:
@@ -46,7 +43,7 @@ async def listar(conn=Depends(get_conexion)):
 async def listar_por_id(id: int, conn=Depends(get_conexion)):
 
     consulta = """
-        SELECT id_receta, id_producto, id_insumo, cantidad, fecha_creacion
+        SELECT id_receta, id_producto, id_insumo, cantidad
         FROM receta
         WHERE id_receta = %s;
     """
@@ -72,9 +69,9 @@ async def listar_por_id(id: int, conn=Depends(get_conexion)):
 async def crear_receta(receta: RecetaInsert, conn=Depends(get_conexion)):
 
     consulta = """
-        INSERT INTO receta (id_producto, id_insumo, cantidad, fecha_creacion)
+        INSERT INTO receta (id_producto, id_insumo, cantidad)
         VALUES (%s, %s, %s, CURRENT_DATE)
-        RETURNING id_receta, id_producto, id_insumo, cantidad, fecha_creacion;
+        RETURNING id_receta, id_producto, id_insumo, cantidad;
     """
 
     try:
@@ -107,7 +104,7 @@ async def actualizar_receta(id: int, receta: RecetaInsert, conn=Depends(get_cone
             id_insumo = %s,
             cantidad = %s
         WHERE id_receta = %s
-        RETURNING id_receta, id_producto, id_insumo, cantidad, fecha_creacion;
+        RETURNING id_receta, id_producto, id_insumo, cantidad;
     """
 
     try:

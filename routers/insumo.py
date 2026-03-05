@@ -8,25 +8,26 @@ router = APIRouter()
 class Insumo(BaseModel):
     id_insumo: int
     nombre: str
-    categoria: str | None = None
-    unidad_medida: str | None = None
+    unidad: str | None = None
+    stock_actual : float | None = None
     stock_minimo: Decimal | None = Decimal("0")
+    stock_maximo: float | None = None
     activo: bool | None = True
 
 
 class InsumoInsert(BaseModel):
     nombre: str
-    categoria: str | None = None
-    unidad_medida: str | None = None
+    unidad: str | None = None
+    stock_actual : float | None = None
     stock_minimo: Decimal | None = Decimal("0")
+    stock_maximo: float | None = None
     activo: bool | None = True
-
 
 # LISTAR TODOS
 @router.get("/")
 async def listar(conn=Depends(get_conexion)):
     consulta = """
-        SELECT id_insumo, nombre, categoria, unidad_medida, stock_minimo, activo
+        SELECT *
         FROM insumo;
     """
     try:
@@ -42,7 +43,7 @@ async def listar(conn=Depends(get_conexion)):
 @router.get("/{id}")
 async def listar_por_id(id: int, conn=Depends(get_conexion)):
     consulta = """
-        SELECT id_insumo, nombre, categoria, unidad_medida, stock_minimo, activo
+        SELECT id_insumo, nombre, unidad, stock_actual, stock_minimo, stock_maximo, activo
         FROM insumo
         WHERE id_insumo = %s;
     """
@@ -64,9 +65,9 @@ async def listar_por_id(id: int, conn=Depends(get_conexion)):
 @router.post("/")
 async def crear_insumo(insumo: InsumoInsert, conn=Depends(get_conexion)):
     consulta = """
-        INSERT INTO insumo (nombre, categoria, unidad_medida, stock_minimo, activo)
+        INSERT INTO insumo (nombre, unidad, stock_actual, stock_minimo, stock_maximo, activo)
         VALUES (%s, %s, %s, %s, %s)
-        RETURNING id_insumo, nombre, categoria, unidad_medida, stock_minimo, activo;
+        RETURNING id_insumo, id_insumo, nombre, unidad, stock_actual, stock_minimo, stock_maximo, activo;
     """
     try:
         async with conn.cursor() as cursor:
@@ -91,13 +92,14 @@ async def crear_insumo(insumo: InsumoInsert, conn=Depends(get_conexion)):
 async def actualizar_insumo(id: int, insumo: InsumoInsert, conn=Depends(get_conexion)):
     consulta = """
         UPDATE insumo
-        SET nombre = %s,
-            categoria = %s,
-            unidad_medida = %s,
-            stock_minimo = %s,
-            activo = %s
+        SET    nombre %s, 
+    unidad %s,
+    stock_actual %s,
+    stock_minimo %s,
+    stock_maximo %s, 
+    activo %s
         WHERE id_insumo = %s
-        RETURNING id_insumo, nombre, categoria, unidad_medida, stock_minimo, activo;
+        RETURNING id_insumo, id_insumo, nombre, unidad, stock_actual, stock_minimo, stock_maximo, activo;
     """
     try:
         async with conn.cursor() as cursor:

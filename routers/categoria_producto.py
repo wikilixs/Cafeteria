@@ -6,7 +6,7 @@ router = APIRouter()
 
 
 class CategoriaProducto(BaseModel):
-    id_categoria_producto: int
+    id_categoria: int
     nombre: str
 
 
@@ -19,7 +19,7 @@ class CategoriaProductoCreate(BaseModel):
 async def listar(conn=Depends(get_conexion)):
 
     consulta = """
-        SELECT id_categoria_producto, nombre
+        SELECT id_categoria, nombre
         FROM categoria_producto;
     """
 
@@ -39,7 +39,7 @@ async def listar(conn=Depends(get_conexion)):
 async def listar_por_id(id: int, conn=Depends(get_conexion)):
 
     consulta = """
-        SELECT id_categoria_producto, nombre
+        SELECT id_categoria, nombre
         FROM categoria_producto
         WHERE id_categoria_producto = %s;
     """

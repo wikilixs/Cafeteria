@@ -4,54 +4,59 @@ from config.conexionDB import get_conexion
 
 router = APIRouter()
 
-class Insumo(BaseModel):
-    id_insumo: int
-    nombre: str
-    descripcion: str | None = None
-    stock: float
-    unidad_medida: str
+class Proveedor(BaseModel):
     id_proveedor: int
+    nombre: str
+    telefono: str
+    email: str
+    nit: str
+    activo: bool 
+
+class ProveedorInsert(BaseModel):
+    nombre: str
+    telefono: str
+    email: str
+    nit: str
     activo: bool | None = True
 
-class InsumoInsert(BaseModel):
-    nombre: str
-    descripcion: str | None = None
-    stock: float
-    unidad_medida: str
-    id_proveedor: int
-    activo: bool | None = True
-
+class InsumoUpdate(BaseModel):
+    nombre: str | None = None
+    telefono: str | None = None
+    email: str | None = None
+    nit: str | None = None
+    activo: bool | None = None
 
 @router.get("/")
 async def listar(conn=Depends(get_conexion)):
     try:
         async with conn.cursor() as cursor:
-            await cursor.execute("SELECT * FROM insumo;")
+            await cursor.execute("SELECT * FROM proveedor;")
             return await cursor.fetchall()
     except Exception as e:
-        print(f"Error listado insumo: {e}")
-        raise HTTPException(status_code=400, detail="Error al listar insumos")
+        print(f"Error listado proveedor: {e}")
+        raise HTTPException(status_code=400, detail="Error al listar proveedores")
 
 
 @router.post("/")
-async def crear_insumo(insumo: InsumoInsert, conn=Depends(get_conexion)):
+async def crear_insumo(insumo: ProveedorInsert, conn=Depends(get_conexion)):
     consulta = """
-        INSERT INTO insumo 
-        (nombre, descripcion, stock, unidad_medida, id_proveedor, activo)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO proveedor 
+        (nombre, telefono, email, nit, activo)
+        VALUES (%s, %s, %s, %s, %s)
         RETURNING *;
     """
     try:
         async with conn.cursor() as cursor:
             await cursor.execute(consulta, (
                 insumo.nombre,
-                insumo.descripcion,
-                insumo.stock,
-                insumo.unidad_medida,
-                insumo.id_proveedor,
+                insumo.telefono,
+                insumo.email,
+                insumo.nit,
                 insumo.activo
             ))
             return await cursor.fetchone()
     except Exception as e:
-        print(f"Error creando insumo: {e}")
-        raise HTTPException(status_code=400, detail="Error al crear insumo")
+        print(f"Error creando proveedor: {e}")
+        raise HTTPException(status_code=400, detail="Error al crear proveedor")
+    
+

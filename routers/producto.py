@@ -8,19 +8,19 @@ router = APIRouter()
 
 class Producto(BaseModel):
     id_producto: int
+    id_categoria: int
     nombre: str
-    descripcion: str | None = None
-    unidad_medida: str | None = None
-    precio_venta: Decimal | None = Decimal("0")
-    activo: bool | None = True
-
+    precio: float
+    precio_costo: float
+    activo: bool
 
 class ProductoInsert(BaseModel):
+    id_categoria: int
     nombre: str
-    descripcion: str | None = None
-    unidad_medida: str | None = None
-    precio_venta: Decimal | None = Decimal("0")
+    precio: float
+    precio_costo: float
     activo: bool | None = True
+
 
 
 # LISTAR TODOS
@@ -28,7 +28,7 @@ class ProductoInsert(BaseModel):
 async def listar(conn=Depends(get_conexion)):
 
     consulta = """
-        SELECT id_producto, nombre, descripcion, unidad_medida, precio_venta, activo
+        SELECT * 
         FROM producto;
     """
 
@@ -48,7 +48,7 @@ async def listar(conn=Depends(get_conexion)):
 async def listar_por_id(id: int, conn=Depends(get_conexion)):
 
     consulta = """
-        SELECT id_producto, nombre, descripcion, unidad_medida, precio_venta, activo
+        SELECT id_producto, id_categoria, nombre, precio, precio_costo, activo
         FROM producto
         WHERE id_producto = %s;
     """
@@ -74,9 +74,9 @@ async def crear_producto(producto: ProductoInsert, conn=Depends(get_conexion)):
 
     consulta = """
         INSERT INTO producto
-        (nombre, descripcion, unidad_medida, precio_venta, activo)
+        (id_categoria, nombre, precio, precio_costo, activo)
         VALUES (%s, %s, %s, %s, %s)
-        RETURNING id_producto, nombre, descripcion, unidad_medida, precio_venta, activo;
+        RETURNING id_producto, id_categoria, nombre, precio, precio_costo, activo;
     """
 
     try:
@@ -85,13 +85,14 @@ async def crear_producto(producto: ProductoInsert, conn=Depends(get_conexion)):
             await cursor.execute(
                 consulta,
                 (
+                    producto.id_categoria,
                     producto.nombre,
-                    producto.descripcion,
-                    producto.unidad_medida,
-                    producto.precio_venta,
+                    producto.precio,
+                    producto.precio_costo,
                     producto.activo
                 )
             )
+
 
             resultado = await cursor.fetchone()
             return resultado
@@ -107,11 +108,10 @@ async def actualizar_producto(id: int, producto: ProductoInsert, conn=Depends(ge
 
     consulta = """
         UPDATE producto
-        SET nombre = %s,
-            descripcion = %s,
-            unidad_medida = %s,
-            precio_venta = %s,
-            activo = %s
+        SET nombre %s,
+    precio %s,
+    precio_costo %s,
+    activo %s
         WHERE id_producto = %s
         RETURNING id_producto, nombre, descripcion, unidad_medida, precio_venta, activo;
     """
@@ -123,9 +123,8 @@ async def actualizar_producto(id: int, producto: ProductoInsert, conn=Depends(ge
                 consulta,
                 (
                     producto.nombre,
-                    producto.descripcion,
-                    producto.unidad_medida,
-                    producto.precio_venta,
+                    producto.precio,
+                    producto.precio_costo,
                     producto.activo,
                     id
                 )
