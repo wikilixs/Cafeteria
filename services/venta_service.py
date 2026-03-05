@@ -2,6 +2,7 @@ import logging
 from decimal import Decimal
 from fastapi import HTTPException
 from services.stock_service import verificar_stock_minimos
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -146,3 +147,50 @@ async def registrar_venta(conn, id_usuario: int, detalles: list[dict]) -> dict:
         await conn.rollback()
         logger.error(f"Error registrando venta: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error al registrar la venta")
+
+async def obtener_reporte_ventas(conn, fecha_inicio: Optional[str] = None, fecha_fin: Optional[str] = None, id_usuario: Optional[int] = None) -> list[dict]:
+    """
+    Obtiene un reporte de ventas con detalles, opcionalmente filtrado por fechas y usuario.
+    """
+    consulta = """
+        SELECT 
+            v.id_venta,
+            v.fecha,
+            v.estado,
+            v.total,
+            v.nota,
+            u.nombre AS usuario,
+            dv.id_producto,
+            pr.nombre AS producto,
+            dv.cantidad,
+            dv.precio_unitario,
+            (dv.cantidad * dv.precio_unitario) AS subtotal
+        FROM venta v
+        JOIN usuario u ON v.id_usuario = u.id_usuario
+        JOIN detalle_venta dv ON v.id_venta = dv.id_venta
+        JOIN producto pr ON dv.id_producto = pr.id_producto
+        WHERE 1=1
+    """
+    params = []
+
+    if fecha_inicio:
+        consulta += " AND v.fecha >= %s"
+        params.append(fecha_inicio)
+    if fecha_fin:
+        consulta += " AND v.fecha <= %s"
+        params.append(fecha_fin)
+    if id_usuario:
+        consulta += " AND v.id_usuario = %s"
+        params.append(id_usuario)
+
+    consulta += " ORDER BY v.fecha DESC, v.id_venta DESC"
+
+    try:
+        async with conn.cursor() as cur:
+            await cur.execute(consulta, params)
+            cols = [desc[0] for desc in cur.description]
+            rows = await cur.fetchall()
+            return [dict(zip(cols, row)) for row in rows]
+    except Exception as e:
+        logger.error(f"Error obteniendo reporte de ventas: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Error al obtener el reporte de ventas")

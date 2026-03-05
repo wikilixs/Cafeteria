@@ -42,6 +42,40 @@
             <button type="button" onclick="addRow()">Agregar Insumo</button>
             <button type="submit">Registrar Compra</button>
         </form>
+
+        <h2>Reporte de Compras</h2>
+        <form id="reporteForm">
+            <label for="fechaInicio">Fecha Inicio:</label>
+            <input type="date" id="fechaInicio">
+
+            <label for="fechaFin">Fecha Fin:</label>
+            <input type="date" id="fechaFin">
+
+            <label for="proveedorReporte">Proveedor:</label>
+            <select id="proveedorReporte">
+                <option value="">Todos</option>
+            </select>
+
+            <button type="button" onclick="cargarReporte()">Cargar Reporte</button>
+        </form>
+
+        <table id="reporteTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>ID Compra</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Proveedor</th>
+                    <th>Usuario</th>
+                    <th>Insumo</th>
+                    <th>Cantidad</th>
+                    <th>Costo Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="reporteBody">
+            </tbody>
+        </table>
     </div>
 
     <script>
@@ -55,6 +89,13 @@
                 select.innerHTML = '<option value="">Seleccionar Proveedor</option>';
                 proveedores.forEach(p => {
                     select.innerHTML += `<option value="${p.id_proveedor}">${p.nombre}</option>`;
+                });
+
+                // También cargar en el select de reporte
+                const selectReporte = document.getElementById('proveedorReporte');
+                selectReporte.innerHTML = '<option value="">Todos</option>';
+                proveedores.forEach(p => {
+                    selectReporte.innerHTML += `<option value="${p.id_proveedor}">${p.nombre}</option>`;
                 });
             } catch (error) {
                 console.error('Error loading proveedores:', error);
@@ -146,6 +187,45 @@
             loadProveedores();
             loadInsumos();
         };
+
+        async function cargarReporte() {
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            const idProveedor = document.getElementById('proveedorReporte').value;
+
+            let url = `${API_BASE}/compra/reporte?`;
+            if (fechaInicio) url += `fecha_inicio=${fechaInicio}&`;
+            if (fechaFin) url += `fecha_fin=${fechaFin}&`;
+            if (idProveedor) url += `id_proveedor=${idProveedor}&`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const tbody = document.getElementById('reporteBody');
+                tbody.innerHTML = '';
+
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.id_compra}</td>
+                        <td>${item.fecha}</td>
+                        <td>${item.estado}</td>
+                        <td>${item.proveedor || 'N/A'}</td>
+                        <td>${item.usuario}</td>
+                        <td>${item.insumo}</td>
+                        <td>${item.cantidad}</td>
+                        <td>${item.costo_unitario}</td>
+                        <td>${item.subtotal}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                document.getElementById('reporteTable').style.display = 'table';
+            } catch (error) {
+                console.error('Error cargando reporte:', error);
+                alert('Error al cargar el reporte');
+            }
+        }
     </script>
 </body>
 </html>

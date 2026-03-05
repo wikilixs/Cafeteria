@@ -45,6 +45,40 @@
 
             <button type="submit">Registrar Venta</button>
         </form>
+
+        <h2>Reporte de Ventas</h2>
+        <form id="reporteForm">
+            <label for="fechaInicio">Fecha Inicio:</label>
+            <input type="date" id="fechaInicio">
+
+            <label for="fechaFin">Fecha Fin:</label>
+            <input type="date" id="fechaFin">
+
+            <label for="usuarioReporte">Usuario:</label>
+            <select id="usuarioReporte">
+                <option value="">Todos</option>
+            </select>
+
+            <button type="button" onclick="cargarReporte()">Cargar Reporte</button>
+        </form>
+
+        <table id="reporteTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>ID Venta</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Usuario</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="reporteBody">
+            </tbody>
+        </table>
     </div>
 
     <script>
@@ -56,6 +90,20 @@
                 window.productos = await response.json();
             } catch (error) {
                 console.error('Error loading productos:', error);
+            }
+        }
+
+        async function loadUsuarios() {
+            try {
+                const response = await fetch(`${API_BASE}/usuario/`);
+                const usuarios = await response.json();
+                const select = document.getElementById('usuarioReporte');
+                select.innerHTML = '<option value="">Todos</option>';
+                usuarios.forEach(u => {
+                    select.innerHTML += `<option value="${u.id_usuario}">${u.nombre}</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading usuarios:', error);
             }
         }
 
@@ -158,7 +206,47 @@
 
         window.onload = () => {
             loadProductos();
+            loadUsuarios();
         };
+
+        async function cargarReporte() {
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            const idUsuario = document.getElementById('usuarioReporte').value;
+
+            let url = `${API_BASE}/venta/reporte?`;
+            if (fechaInicio) url += `fecha_inicio=${fechaInicio}&`;
+            if (fechaFin) url += `fecha_fin=${fechaFin}&`;
+            if (idUsuario) url += `id_usuario=${idUsuario}&`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const tbody = document.getElementById('reporteBody');
+                tbody.innerHTML = '';
+
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.id_venta}</td>
+                        <td>${item.fecha}</td>
+                        <td>${item.estado}</td>
+                        <td>${item.total}</td>
+                        <td>${item.usuario}</td>
+                        <td>${item.producto}</td>
+                        <td>${item.cantidad}</td>
+                        <td>${item.precio_unitario}</td>
+                        <td>${item.subtotal}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                document.getElementById('reporteTable').style.display = 'table';
+            } catch (error) {
+                console.error('Error cargando reporte:', error);
+                alert('Error al cargar el reporte');
+            }
+        }
     </script>
 </body>
 </html>

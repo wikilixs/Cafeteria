@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from config.conexionDB import pool, get_conexion, app
-from services.venta_service import registrar_venta
+from services.venta_service import registrar_venta, obtener_reporte_ventas
 from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
@@ -117,3 +117,16 @@ async def eliminar(id_venta: int, conn=Depends(get_conexion)):
         print(f"Error al eliminar venta en Psycopg: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
     
+
+@router.get("/reporte")
+async def reporte_ventas(
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None,
+    id_usuario: Optional[int] = None,
+    conn=Depends(get_conexion)
+):
+    try:
+        return await obtener_reporte_ventas(conn, fecha_inicio, fecha_fin, id_usuario)
+    except Exception as e:
+        print(f"Error al obtener reporte de ventas: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error al obtener el reporte")
