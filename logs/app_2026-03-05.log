@@ -119,3 +119,14 @@ psycopg.errors.UndefinedColumn: no existe la columna u.nombre
 LINE 8:             u.nombre AS usuario,
                     ^
 HINT:  Probablemente quiera hacer referencia a la columna «p.nombre» o la columna «i.nombre».
+2026-03-05 11:16:34 | INFO     | services.compra_service | Registrando compra — total calculado: 936.00
+2026-03-05 11:16:34 | INFO     | services.compra_service | Compra 6 registrada correctamente
+2026-03-05 11:28:28 | INFO     | services.venta_service | Registrando venta — total: 84.0
+2026-03-05 11:28:28 | INFO     | services.venta_service | Venta 10 registrada correctamente
+2026-03-05 11:34:18 | INFO     | services.venta_service | Registrando venta — total: 27.0
+2026-03-05 11:34:18 | INFO     | services.venta_service | Venta 11 registrada correctamente
+2026-03-05 11:48:06 | WARNING  | middlewares.errors | Validation error en http://127.0.0.1:8000/usuario/: [{'type': 'missing', 'loc': ('body', 'password'), 'msg': 'Field required', 'input': {'id_usuario': 1, 'id_personal': 1, 'username': 'pepito.barista', 'email': 'pepito@cafeteria.com', 'password_hash': '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMqJqhcanFp8RWseeRBZPFzpei', 'activo': True}}]
+2026-03-05 11:48:23 | WARNING  | middlewares.errors | Validation error en http://127.0.0.1:8000/usuario/: [{'type': 'missing', 'loc': ('body', 'password'), 'msg': 'Field required', 'input': {'id_personal': 6, 'username': 'pepito.barista', 'email': 'pepito@cafeteria.com', 'password_hash': '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMqJqhcanFp8RWseeRBZPFzpei', 'activo': True}}]
+2026-03-05 11:49:14 | WARNING  | middlewares.errors | Validation error en http://127.0.0.1:8000/usuario/: [{'type': 'missing', 'loc': ('body', 'password'), 'msg': 'Field required', 'input': {'id_personal': 6, 'username': 'pepito.barista', 'email': 'pepito@cafeteria.com', 'password_hash': '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMqJqhcanFp8RWseeRBZPFzpei', 'activo': True}}]
+2026-03-05 11:50:14 | WARNING  | middlewares.errors | Validation error en http://127.0.0.1:8000/usuario/: [{'type': 'missing', 'loc': ('body', 'password'), 'msg': 'Field required', 'input': {'id_personal': 6, 'username': 'pepito.barista', 'email': 'pepito@cafeteria.com', 'password_hash': '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMqJqhcanFp8RWseeRBZPFzpei', 'activo': True}}]
+2026-03-05 11:50:34 | WARNING  | middlewares.errors | Validation error en http://127.0.0.1:8000/usuario/: [{'type': 'missing', 'loc': ('body', 'password'), 'msg': 'Field required', 'input': {'id_personal': 6, 'username': 'pepito.barista', 'email': 'pepito@cafeteria.com', 'password_hash': 'fasfljasfdsafdfasfadsfl', 'activo': True}}]

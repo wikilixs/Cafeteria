@@ -92,6 +92,7 @@ async def crear(venta: VentaCreate, conn=Depends(get_conexion)):
 
 @router.put("/{id_venta}")
 async def actualizar(id_venta: int, venta: VentaUpdate, conn=Depends(get_conexion)):
+    print ("Venta actualzidas ") 
     consulta = """
         UPDATE venta SET id_usuario = COALESCE(%s, id_usuario),
                          fecha = COALESCE(%s, fecha),
@@ -111,7 +112,7 @@ async def actualizar(id_venta: int, venta: VentaUpdate, conn=Depends(get_conexio
                 id_venta
             ))
             await conn.commit()
-            return {"message": "Venta actualizada exitosamente"}
+            return {"message": "Venta actualizada"}
     except Exception as e:
         print(f"Error al actualizar venta en Psycopg: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
@@ -129,3 +130,4 @@ async def eliminar(id_venta: int, conn=Depends(get_conexion)):
     except Exception as e:
         print(f"Error al eliminar venta en Psycopg: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+
