@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacer Venta</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        input, select { width: 100%; padding: 5px; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        .total { font-size: 18px; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hacer una Venta</h1>
+        <form id="ventaForm">
+            <label for="usuario">ID Usuario:</label>
+            <input type="number" id="usuario" value="1" required>
+
+            <h2>Detalles de la Venta</h2>
+            <table id="detallesTable">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="detallesBody">
+                    <!-- Rows will be added here -->
+                </tbody>
+            </table>
+            <button type="button" onclick="addRow()">Agregar Producto</button>
+
+            <div class="total">
+                Total: $<span id="totalAmount">0.00</span>
+            </div>
+
+            <button type="submit">Registrar Venta</button>
+        </form>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        async function loadProductos() {
+            try {
+                const response = await fetch(`${API_BASE}/producto/`);
+                window.productos = await response.json();
+            } catch (error) {
+                console.error('Error loading productos:', error);
+            }
+        }
+
+        function addRow() {
+            const tbody = document.getElementById('detallesBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <select class="producto" required onchange="updateSubtotal(this)">
+                        <option value="">Seleccionar Producto</option>
+                        ${window.productos.map(p => `<option value="${p.id_producto}" data-price="${p.precio}">${p.nombre}</option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="number" class="cantidad" step="1" min="1" value="1" required onchange="updateSubtotal(this)"></td>
+                <td><input type="number" class="precio" step="0.01" readonly></td>
+                <td><span class="subtotal">0.00</span></td>
+                <td><button type="button" onclick="removeRow(this)">Eliminar</button></td>
+            `;
+            tbody.appendChild(row);
+            updateSubtotal(row.querySelector('.cantidad'));
+        }
+
+        function updateSubtotal(element) {
+            const row = element.closest('tr');
+            const productoSelect = row.querySelector('.producto');
+            const cantidadInput = row.querySelector('.cantidad');
+            const precioInput = row.querySelector('.precio');
+            const subtotalSpan = row.querySelector('.subtotal');
+
+            const selectedOption = productoSelect.options[productoSelect.selectedIndex];
+            const precio = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+            const cantidad = parseFloat(cantidadInput.value) || 0;
+
+            precioInput.value = precio.toFixed(2);
+            const subtotal = precio * cantidad;
+            subtotalSpan.textContent = subtotal.toFixed(2);
+
+            updateTotal();
+        }
+
+        function updateTotal() {
+            let total = 0;
+            document.querySelectorAll('#detallesBody tr').forEach(row => {
+                const subtotal = parseFloat(row.querySelector('.subtotal').textContent) || 0;
+                total += subtotal;
+            });
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+        }
+
+        function removeRow(button) {
+            button.closest('tr').remove();
+            updateTotal();
+        }
+
+        document.getElementById('ventaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id_usuario = document.getElementById('usuario').value;
+            const rows = document.querySelectorAll('#detallesBody tr');
+            const detalles = [];
+
+            rows.forEach(row => {
+                const producto = row.querySelector('.producto').value;
+                const cantidad = row.querySelector('.cantidad').value;
+                const precio = row.querySelector('.precio').value;
+                if (producto && cantidad && precio) {
+                    detalles.push({
+                        id_producto: parseInt(producto),
+                        cantidad: parseInt(cantidad),
+                        precio_unitario: parseFloat(precio)
+                    });
+                }
+            });
+
+            if (detalles.length === 0) {
+                alert('Agregue al menos un producto');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/venta/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_usuario: parseInt(id_usuario),
+                        detalles
+                    })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(`Venta registrada con ID: ${result.id_venta}, Total: $${result.total}`);
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.detail);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al registrar la venta');
+            }
+        });
+
+        window.onload = () => {
+            loadProductos();
+        };
+    </script>
+</body>
+</html>

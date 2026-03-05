@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacer Compra</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        input, select { width: 100%; padding: 5px; }
+        button { padding: 10px 20px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hacer una Compra</h1>
+        <form id="compraForm">
+            <label for="proveedor">Proveedor:</label>
+            <select id="proveedor" required></select>
+
+            <label for="usuario">ID Usuario:</label>
+            <input type="number" id="usuario" value="1" required>
+
+            <h2>Detalles de la Compra</h2>
+            <table id="detallesTable">
+                <thead>
+                    <tr>
+                        <th>Insume</th>
+                        <th>Cantidad</th>
+                        <th>Costo Unitario</th>
+                        <th>Fecha Vencimiento (opcional)</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="detallesBody">
+                    <!-- Rows will be added here -->
+                </tbody>
+            </table>
+            <button type="button" onclick="addRow()">Agregar Insumo</button>
+            <button type="submit">Registrar Compra</button>
+        </form>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        async function loadProveedores() {
+            try {
+                const response = await fetch(`${API_BASE}/proveedor/`);
+                const proveedores = await response.json();
+                const select = document.getElementById('proveedor');
+                select.innerHTML = '<option value="">Seleccionar Proveedor</option>';
+                proveedores.forEach(p => {
+                    select.innerHTML += `<option value="${p.id_proveedor}">${p.nombre}</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading proveedores:', error);
+            }
+        }
+
+        async function loadInsumos() {
+            try {
+                const response = await fetch(`${API_BASE}/insumo/`);
+                window.insumos = await response.json();
+            } catch (error) {
+                console.error('Error loading insumos:', error);
+            }
+        }
+
+        function addRow() {
+            const tbody = document.getElementById('detallesBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <select class="insumo" required>
+                        <option value="">Seleccionar Insumo</option>
+                        ${window.insumos.map(i => `<option value="${i.id_insumo}">${i.nombre}</option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="number" class="cantidad" step="0.01" required></td>
+                <td><input type="number" class="costo" step="0.01" required></td>
+                <td><input type="date" class="vencimiento"></td>
+                <td><button type="button" onclick="removeRow(this)">Eliminar</button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function removeRow(button) {
+            button.closest('tr').remove();
+        }
+
+        document.getElementById('compraForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id_proveedor = document.getElementById('proveedor').value;
+            const id_usuario = document.getElementById('usuario').value;
+            const rows = document.querySelectorAll('#detallesBody tr');
+            const detalles = [];
+
+            rows.forEach(row => {
+                const insumo = row.querySelector('.insumo').value;
+                const cantidad = row.querySelector('.cantidad').value;
+                const costo = row.querySelector('.costo').value;
+                const vencimiento = row.querySelector('.vencimiento').value;
+                if (insumo && cantidad && costo) {
+                    detalles.push({
+                        id_insumo: parseInt(insumo),
+                        cantidad: parseFloat(cantidad),
+                        costo_unitario: parseFloat(costo),
+                        fecha_vencimiento: vencimiento || null
+                    });
+                }
+            });
+
+            if (detalles.length === 0) {
+                alert('Agregue al menos un insumo');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/compra/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_proveedor: id_proveedor ? parseInt(id_proveedor) : null,
+                        id_usuario: parseInt(id_usuario),
+                        detalles
+                    })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(`Compra registrada con ID: ${result.id_compra}, Total: ${result.total}`);
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.detail);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al registrar la compra');
+            }
+        });
+
+        window.onload = () => {
+            loadProveedores();
+            loadInsumos();
+        };
+    </script>
+</body>
+</html>

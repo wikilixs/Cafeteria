@@ -5,7 +5,7 @@ from fastapi import HTTPException
 logger = logging.getLogger(__name__)
 
 
-def registrar_compra(conn, id_proveedor: int | None, id_usuario: int, detalles: list[dict]) -> dict:
+async def registrar_compra(conn, id_proveedor: int | None, id_usuario: int, detalles: list[dict]) -> dict:
     """
     Registra una compra completa y calcula el total automáticamente.
 
@@ -16,7 +16,7 @@ def registrar_compra(conn, id_proveedor: int | None, id_usuario: int, detalles: 
         raise HTTPException(status_code=400, detail="La compra debe tener al menos un detalle")
 
     try:
-        with conn.cursor() as cur:
+        async with conn.cursor() as cur:
 
             # 1. Calcular total
             total = sum(
@@ -26,43 +26,53 @@ def registrar_compra(conn, id_proveedor: int | None, id_usuario: int, detalles: 
             logger.info(f"Registrando compra — total calculado: {total}")
 
             # 2. Insertar compra
-            cur.execute(
+            await cur.execute(
                 """
-                INSERT INTO compra (id_proveedor, id_usuario, total, estado)
-                VALUES (%s, %s, %s, 'CONFIRMADA')
+                INSERT INTO compra (id_proveedor, id_usuario, estado)
+                VALUES (%s, %s, 'CONFIRMADA')
                 RETURNING id_compra
                 """,
-                (id_proveedor, id_usuario, total)
+                (id_proveedor, id_usuario)
             )
-            id_compra = cur.fetchone()[0]
+            id_compra_result = await cur.fetchone()
+            id_compra = id_compra_result['id_compra']
 
-            # 3. Insertar detalles — cada fila es un lote
+            # 3. Insertar detalles
             for d in detalles:
                 cantidad = Decimal(str(d["cantidad"]))
-                cur.execute(
+                await cur.execute(
                     """
                     INSERT INTO detalle_compra
-                        (id_compra, id_insumo, cantidad, cantidad_disponible, costo_unitario, fecha_vencimiento)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                        (id_compra, id_insumo, cantidad, costo_unitario)
+                    VALUES (%s, %s, %s, %s)
                     """,
                     (
                         id_compra,
                         d["id_insumo"],
                         cantidad,
-                        cantidad,   # cantidad_disponible = cantidad al inicio
-                        Decimal(str(d["costo_unitario"])),
-                        d.get("fecha_vencimiento")
+                        Decimal(str(d["costo_unitario"]))
                     )
                 )
 
-            conn.commit()
+            # 4. Registrar movimiento inventario
+            for d in detalles:
+                await cur.execute(
+                    """
+                    INSERT INTO movimiento_inventario (tipo, id_insumo, cantidad, signo, referencia_tabla, referencia_id, id_usuario)
+                    VALUES ('COMPRA', %s, %s, 1, 'compra', %s, %s)
+                    """,
+                    (d["id_insumo"], Decimal(str(d["cantidad"])), id_compra, id_usuario)
+                )
+
+            await conn.commit()
             logger.info(f"Compra {id_compra} registrada correctamente")
             return {"id_compra": id_compra, "total": total}
 
     except HTTPException:
-        conn.rollback()
+        await conn.rollback()
         raise
     except Exception as e:
-        conn.rollback()
+        await conn.rollback()
         logger.error(f"Error registrando compra: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error al registrar la compra")
+

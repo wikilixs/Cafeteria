@@ -82,3 +82,26 @@ Multiple connection attempts failed. All failures were:
 connection to server at "::1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
 - host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
 connection to server at "127.0.0.1", port 5432 failed: FATAL:  la autentificación password falló para el usuario «postgres»
+2026-03-05 10:33:55 | INFO     | services.compra_service | Registrando compra — total calculado: 72.00
+2026-03-05 10:33:55 | ERROR    | services.compra_service | Error registrando compra: no existe la columna «total» en la relación «compra»
+LINE 2: ...    INSERT INTO compra (id_proveedor, id_usuario, total, est...
+                                                             ^
+Traceback (most recent call last):
+  File "/home/wikilixs/Proyectos/Cafeteria/cafeteria/services/compra_service.py", line 29, in registrar_compra
+    await cur.execute(
+    ...<6 lines>...
+    )
+  File "/home/wikilixs/Proyectos/Cafeteria/cafeteria/.venv/lib/python3.13/site-packages/psycopg/cursor_async.py", line 117, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UndefinedColumn: no existe la columna «total» en la relación «compra»
+LINE 2: ...    INSERT INTO compra (id_proveedor, id_usuario, total, est...
+                                                             ^
+2026-03-05 10:34:38 | INFO     | services.venta_service | Registrando venta — total: 15.0
+2026-03-05 10:34:38 | ERROR    | services.venta_service | Error registrando venta: 0
+Traceback (most recent call last):
+  File "/home/wikilixs/Proyectos/Cafeteria/cafeteria/services/venta_service.py", line 118, in registrar_venta
+    id_venta = id_venta_result[0]
+               ~~~~~~~~~~~~~~~^^^
+KeyError: 0
+2026-03-05 10:38:39 | INFO     | services.compra_service | Registrando compra — total calculado: 28.00
+2026-03-05 10:38:39 | INFO     | services.compra_service | Compra 5 registrada correctamente

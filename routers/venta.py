@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from config.conexionDB import pool, get_conexion, app
-
-from typing import Optional
+from services.venta_service import registrar_venta
+from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
 from schema.enums import EstadoVenta
@@ -20,12 +20,14 @@ class VentaRespuesta(BaseModel):
     total:          Decimal
     nota:           str
 
+class DetalleVentaInput(BaseModel):
+    id_producto: int
+    cantidad: int
+    precio_unitario: float
+
 class VentaCreate(BaseModel):
-    id_usuario:     int
-    fecha:          datetime
-    estado:         EstadoVenta
-    total:          Decimal
-    nota:           str
+    id_usuario: int
+    detalles: List[DetalleVentaInput]
 
 class VentaUpdate(BaseModel):
     id_usuario:     Optional[int] = None
@@ -66,26 +68,14 @@ async def obtener(id_venta: int, conn=Depends(get_conexion)):
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
     
 @router.post("/")
-async def crear(venta: VentaRespuesta, conn=Depends(get_conexion)):
-    consulta = """
-        INSERT INTO venta (id_usuario, fecha, estado, total, nota)
-        VALUES (%s, %s, %s, %s, %s) RETURNING id_venta;
-    """
+async def crear(venta: VentaCreate, conn=Depends(get_conexion)):
     try:
-        async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (
-                venta.id_usuario,
-                venta.fecha,
-                venta.estado.value,
-                venta.total,
-                venta.nota
-            ))
-            id_venta = await cursor.fetchone()
-            await conn.commit()
-            return {"id_venta": id_venta[0]}
+        detalles = [d.dict() for d in venta.detalles]
+        result = await registrar_venta(conn, venta.id_usuario, detalles)
+        return result
     except Exception as e:
-        print(f"Error al crear venta en Psycopg: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+        print(f"Error al crear venta: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error al crear la venta")
 
 @router.put("/{id_venta}")
 async def actualizar(id_venta: int, venta: VentaUpdate, conn=Depends(get_conexion)):

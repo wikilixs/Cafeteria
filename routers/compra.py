@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from config.conexionDB import pool, get_conexion, app
+from services.compra_service import registrar_compra
+from typing import List, Optional
 
 router = APIRouter()
 
@@ -12,11 +14,16 @@ class Compra(BaseModel):
     estado: str
     observacion: str
 
+class DetalleCompraInput(BaseModel):
+    id_insumo: int
+    cantidad: float
+    costo_unitario: float
+    fecha_vencimiento: Optional[str] = None
+
 class CompraCreate(BaseModel):
-    id_proveedor: int
-    fecha: str
-    estado: str
-    observacion: str
+    id_proveedor: Optional[int] = None
+    id_usuario: int
+    detalles: List[DetalleCompraInput]
 
 class CompraUpdate(BaseModel):
     id_proveedor: int = None
@@ -56,19 +63,13 @@ async def obtener(id_compra: int, conn=Depends(get_conexion)):
     
 @router.post("/")
 async def crear(compra: CompraCreate, conn=Depends(get_conexion)):
-    consulta = """
-        INSERT INTO compra (id_proveedor, fecha, estado, observacion)
-        VALUES (%s, %s, %s, %s) RETURNING id_compra;
-    """
     try:
-        async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (compra.id_proveedor, compra.fecha, compra.estado, compra.observacion))
-            id_compra = await cursor.fetchone()
-            await conn.commit()
-            return {"id_compra": id_compra[0]}
+        detalles = [d.dict() for d in compra.detalles]
+        result = await registrar_compra(conn, compra.id_proveedor, compra.id_usuario, detalles)
+        return result
     except Exception as e:
-        print(f"Error al crear compra en Psycopg: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+        print(f"Error al crear compra: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error al crear la compra")
     
 @router.put("/{id_compra}")
 async def actualizar(id_compra: int, compra: CompraUpdate, conn=Depends(get_conexion)):

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from config.conexionDB import pool, get_conexion, app
-from routers import rol,personal, usuario, detalle_compra, compra, detalle_venta, movimiento_inventario, venta, categoria_producto, producto, proveedor, insumo
+from routers import rol,personal, usuario, detalle_compra, compra, detalle_venta, movimiento_inventario, venta, categoria_producto, producto, proveedor, insumo, receta
 from middlewares.corps import add_cors
 from middlewares.errors import add_error_handlers
 from middlewares.login import setup_logging
@@ -25,6 +25,8 @@ app.include_router(categoria_producto.router, prefix="/categoria_producto")
 app.include_router(producto.router, prefix="/producto")
 app.include_router(insumo.router, prefix="/insumo")
 app.include_router(proveedor.router, prefix="/proveedor")
+app.include_router(receta.router, prefix="/receta")
+
 
 def main():
     print("Hello from cafeteria!")
