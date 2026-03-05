@@ -1,88 +1,142 @@
-from fastapi import FastAPI, Depends, HTTPException, APIRouter
+from fastapi import Depends, HTTPException, APIRouter
 from pydantic import BaseModel
-from contextlib import asynccontextmanager
-from config.conexionDB import pool, get_conexion, app
+from config.conexionDB import get_conexion
 
 router = APIRouter()
+
 
 class CategoriaProducto(BaseModel):
     id_categoria_producto: int
     nombre: str
 
+
 class CategoriaProductoCreate(BaseModel):
     nombre: str
 
+
+# LISTAR TODAS LAS CATEGORÍAS
 @router.get("/")
 async def listar(conn=Depends(get_conexion)):
-    consulta = "SELECT * FROM categoria_producto"
+
+    consulta = """
+        SELECT id_categoria_producto, nombre
+        FROM categoria_producto;
+    """
+
     try:
         async with conn.cursor() as cursor:
             await cursor.execute(consulta)
-            return await cursor.fetchall()
+            resultado = await cursor.fetchall()
+            return resultado
+
     except Exception as e:
-        print(f"Error listado gral de Psycopg: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+        print(f"Error listando categorías: {e}")
+        raise HTTPException(status_code=400, detail="Error al listar categorías")
 
 
+# LISTAR POR ID
 @router.get("/{id}")
 async def listar_por_id(id: int, conn=Depends(get_conexion)):
+
     consulta = """
-        SELECT * FROM categoria_producto WHERE id_categoria = %s;
+        SELECT id_categoria_producto, nombre
+        FROM categoria_producto
+        WHERE id_categoria_producto = %s;
     """
+
     try:
         async with conn.cursor() as cursor:
             await cursor.execute(consulta, (id,))
-            return await cursor.fetchone()
+            resultado = await cursor.fetchone()
+
+            if resultado is None:
+                raise HTTPException(status_code=404, detail="Categoría no encontrada")
+
+            return resultado
+
     except Exception as e:
-        print(f"Error listado por id de Psycopg: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+        print(f"Error buscando categoría: {e}")
+        raise HTTPException(status_code=400, detail="Error al buscar categoría")
 
 
+# CREAR CATEGORÍA
 @router.post("/")
 async def crear(categoria: CategoriaProductoCreate, conn=Depends(get_conexion)):
+
     consulta = """
-        INSERT INTO categoria_producto (nombre) VALUES (%s) RETURNING id_categoria, nombre;
+        INSERT INTO categoria_producto (nombre)
+        VALUES (%s)
+        RETURNING id_categoria_producto, nombre;
     """
+
     try:
         async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (categoria.nombre,))
-            id_categoria_producto = await cursor.fetchone()
-            return {"id_categoria_producto": id_categoria_producto[0], "nombre": categoria.nombre}
+
+            await cursor.execute(
+                consulta,
+                (categoria.nombre,)
+            )
+
+            resultado = await cursor.fetchone()
+            return resultado
+
     except Exception as e:
-        print(f"Error creación de Psycopg: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador") 
-    
+        print(f"Error creando categoría: {e}")
+        raise HTTPException(status_code=400, detail="Error al crear categoría")
+
+
+# ACTUALIZAR CATEGORÍA
 @router.put("/{id}")
 async def actualizar(id: int, categoria: CategoriaProductoCreate, conn=Depends(get_conexion)):
+
     consulta = """
-        UPDATE categoria_producto SET nombre = %s WHERE id_categoria = %s RETURNING id_categoria, nombre;
+        UPDATE categoria_producto
+        SET nombre = %s
+        WHERE id_categoria_producto = %s
+        RETURNING id_categoria_producto, nombre;
     """
+
     try:
         async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (categoria.nombre, id))
+
+            await cursor.execute(
+                consulta,
+                (categoria.nombre, id)
+            )
+
             resultado = await cursor.fetchone()
-            if resultado:
-                return {"id_categoria_producto": resultado[0], "nombre": resultado[1]}
-            else:
-                raise HTTPException(status_code=404, detail="Categoría de producto no encontrada")
+
+            if resultado is None:
+                raise HTTPException(status_code=404, detail="Categoría no encontrada")
+
+            return resultado
+
     except Exception as e:
-        print(f"Error actualización de Psycopg: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
-    
+        print(f"Error actualizando categoría: {e}")
+        raise HTTPException(status_code=400, detail="Error al actualizar categoría")
+
+
+# ELIMINAR CATEGORÍA
 @router.delete("/{id}")
 async def eliminar(id: int, conn=Depends(get_conexion)):
+
     consulta = """
-        DELETE FROM categoria_producto WHERE id_categoria = %s RETURNING id_categoria;
+        DELETE FROM categoria_producto
+        WHERE id_categoria_producto = %s
+        RETURNING id_categoria_producto;
     """
+
     try:
         async with conn.cursor() as cursor:
+
             await cursor.execute(consulta, (id,))
             resultado = await cursor.fetchone()
-            if resultado:
-                return {"message": "Categoría de producto eliminada exitosamente"}
-            else:
-                raise HTTPException(status_code=404, detail="Categoría de producto no encontrada")
+
+            if resultado is None:
+                raise HTTPException(status_code=404, detail="Categoría no encontrada")
+
+            return {"mensaje": "Categoría eliminada correctamente"}
+
     except Exception as e:
-        print(f"Error eliminación de Psycopg: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
-    
+        print(f"Error eliminando categoría: {e}")
+        raise HTTPException(status_code=400, detail="Error al eliminar categoría")

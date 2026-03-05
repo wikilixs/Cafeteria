@@ -5,10 +5,8 @@ from contextlib import asynccontextmanager
 from .config import settings
 app = FastAPI()
 
-DB_URL = (
-    f"postgresql://{settings.user}:{settings.password}"
-    f"@{settings.host}:{settings.port}/{settings.database}"
-)
+DB_URL = "postgresql://postgres:12895809@localhost:5432/cafeteria"
+
 
 
 pool=AsyncConnectionPool(conninfo=DB_URL, open=False)
