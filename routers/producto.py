@@ -167,3 +167,5 @@ async def eliminar_producto(id: int, conn=Depends(get_conexion)):
     except Exception as e:
         print(f"Error eliminando producto: {e}")
         raise HTTPException(status_code=400, detail="Error al eliminar producto")
+
+        
