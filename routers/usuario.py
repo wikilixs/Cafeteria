@@ -13,28 +13,17 @@ from typing import Optional
 class Usuario(BaseModel):
     id_usuario: int
     id_personal: int
-    username:    str
     email:       str
     password:    str
+    activo:      bool
 
 class UsuarioCreate(BaseModel):
     id_personal: int
     username:    str
     email:       str
     password:    str
+    activo:      bool | None = True
 
-class UsuarioRespuesta(BaseModel):
-    id_usuario: int
-    id_personal: int
-    username:    str
-    email:       str
-
-
-class UsuarioUpdate(BaseModel):
-    id_personal: Optional[int] = None
-    username:    Optional[str] = None
-    email:       Optional[str] = None
-    password:    Optional[str] = None
 
 @router.get("/")
 async def listar(conn=Depends(get_conexion)):
@@ -70,15 +59,51 @@ async def obtener(id_usuario: int, conn=Depends(get_conexion)):
 @router.post("/")
 async def crear(usuario: UsuarioCreate, conn=Depends(get_conexion)):
     consulta = """
-        INSERT INTO usuario (id_personal, username, email, password_hash, activo)
+        INSERT INTO usuario (id_personal, email, password, activo)
         VALUES (%s, %s, %s, %s) RETURNING id_usuario;
     """
     try:
         async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (usuario.id_personal, usuario.username, usuario.email, usuario.password))
-            id_usuario = (await cursor.fetchone())[0]
+            await cursor.execute(consulta, (usuario.id_personal, usuario.email, usuario.password, usuario.activo))
+            id_usuario = await cursor.fetchone()
             await conn.commit()
-            return {"id_usuario": id_usuario}
+            return {"id_usuario": id_usuario[0]}
     except Exception as e:
         print(f"Error al crear usuario en Psycopg: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+
+@router.put("/{id_usuario}")
+async def actualizar(id_usuario: int, usuario: UsuarioCreate, conn=Depends(get_conexion)):
+    consulta = """
+        UPDATE usuario
+        SET id_personal = %s, email = %s, password = %s, activo = %s
+        WHERE id_usuario = %s;
+    """
+    try:
+        async with conn.cursor() as cursor:
+            await cursor.execute(consulta, (usuario.id_personal, usuario.email, usuario.password, usuario.activo, id_usuario))
+            await conn.commit()
+            if cursor.rowcount == 0:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            return {"message": "Usuario actualizado correctamente"}
+    except Exception as e:
+        print(f"Error al actualizar usuario en Psycopg: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+    
+@router.delete("/{id_usuario}")
+async def eliminar(id_usuario: int, conn=Depends(get_conexion)):
+    consulta = """
+        DELETE FROM usuario WHERE id_usuario = %s;
+    """
+    try:
+        async with conn.cursor() as cursor:
+            await cursor.execute(consulta, (id_usuario,))
+            await conn.commit()
+            if cursor.rowcount == 0:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            return {"message": "Usuario eliminado correctamente"}
+    except Exception as e:
+        print(f"Error al eliminar usuario en Psycopg: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+    
+

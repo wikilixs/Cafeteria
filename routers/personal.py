@@ -6,42 +6,32 @@ from datetime import date
 from typing import Optional
 
 router = APIRouter()
+
 class Personal(BaseModel):
-    id_personal:     int
-    id_rol:          int
-    ci:              int
-    nombres:         str
+    id_personal: int 
+    id_rol : int
+    ci: int
+    nombres: str
     primer_apellido: str
     segundo_apellido: str
     fecha_nacimiento: date
-    telefono:         str
-    activo:          bool = True
-    fecha_ingreso:   date = date.today()
+    telefono: int
+    activo : bool | None = True
+    fecha_ingreso: date
 
-class PersonalCrear(BaseModel):
-    id_rol:          int
-    ci:              int
-    nombres:         str
+class PersonalCreate(BaseModel):
+    id_rol : int
+    ci: int
+    nombres: str
     primer_apellido: str
     segundo_apellido: str
     fecha_nacimiento: date
-    telefono:         str
-    activo:          bool = True
-    fecha_ingreso:   date = date.today()
+    telefono: int
+    fecha_ingreso: date
 
-class PersonalActualizar(BaseModel):
-    id_rol:          Optional[int] = None
-    ci:              Optional[int] = None
-    nombres:         Optional[str] = None
-    primer_apellido: Optional[str] = None
-    segundo_apellido: Optional[str] = None
-    fecha_nacimiento: Optional[date] = None
-    telefono:         Optional[str] = None
-    activo:          Optional[bool] = None
-    fecha_ingreso:   Optional[date] = None
 
 @router.get("/")
-async def listar_personal(conn=Depends(get_conexion)):
+async def listar(conn=Depends(get_conexion)):
     consulta = """
         SELECT * FROM personal;
     """
@@ -53,66 +43,91 @@ async def listar_personal(conn=Depends(get_conexion)):
         print(f"Error listado gral de Psycopg: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
 
-@router.post("/")
-async def crear_personal(personal: PersonalCrear, conn=Depends(get_conexion)):
+@router.get("/{id_personal}")
+async def obtener_personal(id_personal: int, conn=Depends(get_conexion)):
     consulta = """
-        INSERT INTO personal (id_rol, ci, nombres, primer_apellido, segundo_apellido, fecha_nacimiento, telefono, activo, fecha_ingreso) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_personal;
-    """
-    try:
-        async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (personal.id_rol, personal.ci, personal.nombres, personal.primer_apellido,
-                                            personal.segundo_apellido, personal.fecha_nacimiento,
-                                            personal.telefono, personal.activo, personal.fecha_ingreso))
-            return await cursor.fetchone()
-    except Exception as e:
-        print(f"Error creando personal: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error al crear el personal")
-    
-@router.put("/{id_personal}")
-async def actualizar_personal(id_personal: int, personal: PersonalActualizar, conn=Depends(get_conexion)):
-    consulta = """
-        UPDATE personal SET 
-            id_rol = COALESCE(%s, id_rol),
-            ci = COALESCE(%s, ci),
-            nombres = COALESCE(%s, nombres),
-            primer_apellido = COALESCE(%s, primer_apellido),
-            segundo_apellido = COALESCE(%s, segundo_apellido),
-            fecha_nacimiento = COALESCE(%s, fecha_nacimiento),
-            telefono = COALESCE(%s, telefono),
-            activo = COALESCE(%s, activo),
-            fecha_ingreso = COALESCE(%s, fecha_ingreso)
-        WHERE id_personal = %s RETURNING id_personal;
-    """
-    try:
-        async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (personal.id_rol, personal.ci, personal.nombres, personal.primer_apellido,
-                                            personal.segundo_apellido, personal.fecha_nacimiento,
-                                            personal.telefono, personal.activo, personal.fecha_ingreso,
-                                            id_personal))
-            resultado = await cursor.fetchone()
-            if resultado is None:
-                raise HTTPException(status_code=404, detail="Personal no encontrado")
-            return resultado
-    except Exception as e:
-        print(f"Error actualizando personal: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error al actualizar el personal")
-
-@router.delete("/{id_personal}")
-async def eliminar_personal(id_personal: int, conn=Depends(get_conexion)):
-    consulta = """
-        DELETE FROM personal WHERE id_personal = %s RETURNING id_personal;
+        SELECT * FROM personal WHERE id_personal = %s;
     """
     try:
         async with conn.cursor() as cursor:
             await cursor.execute(consulta, (id_personal,))
             resultado = await cursor.fetchone()
-            if resultado is None:
+            if resultado:
+                return resultado
+            else:
                 raise HTTPException(status_code=404, detail="Personal no encontrado")
-            return resultado
     except Exception as e:
-        print(f"Error eliminando personal: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error al eliminar el personal")
+        print(f"Error al obtener personal por ID: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+    
+@router.post("/")
+async def crear_personal(personal: PersonalCreate, conn=Depends(get_conexion)):
+    consulta = """
+        INSERT INTO personal (id_rol, ci, nombres, primer_apellido, segundo_apellido, fecha_nacimiento, telefono, fecha_ingreso)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_personal;
+    """
+    try:
+        async with conn.cursor() as cursor:
+            await cursor.execute(consulta, (
+                personal.id_rol,
+                personal.ci,
+                personal.nombres,
+                personal.primer_apellido,
+                personal.segundo_apellido,
+                personal.fecha_nacimiento,
+                personal.telefono,
+                personal.fecha_ingreso
+            ))
+            id_personal = await cursor.fetchone()
+            await conn.commit()
+            return {"id_personal": id_personal[0]}
+    except Exception as e:
+        print(f"Error al crear personal: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error al crear el personal")
     
 
+@router.put("/{id_personal}")
+async def actualizar_personal(id_personal: int, personal: PersonalCreate, conn=Depends(get_conexion)):
+    consulta = """
+        UPDATE personal SET id_rol = %s, ci = %s, nombres = %s, primer_apellido = %s, segundo_apellido = %s, fecha_nacimiento = %s, telefono = %s, fecha_ingreso = %s
+        WHERE id_personal = %s;
+    """
+    try:
+        async with conn.cursor() as cursor:
+            await cursor.execute(consulta, (
+                personal.id_rol,
+                personal.ci,
+                personal.nombres,
+                personal.primer_apellido,
+                personal.segundo_apellido,
+                personal.fecha_nacimiento,
+                personal.telefono,
+                personal.fecha_ingreso,
+                id_personal
+            ))
+            if cursor.rowcount == 0:
+                raise HTTPException(status_code=404, detail="Personal no encontrado")
+            await conn.commit()
+            return {"detail": "Personal actualizado exitosamente"}
+    except Exception as e:
+        print(f"Error al actualizar personal: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error al actualizar el personal")
 
+
+
+@router.delete("/{id_personal}")
+async def eliminar_personal(id_personal: int, conn=Depends(get_conexion)):
+    consulta = """
+        DELETE FROM personal WHERE id_personal = %s;
+    """
+    try:
+        async with conn.cursor() as cursor:
+            await cursor.execute(consulta, (id_personal,))
+            if cursor.rowcount == 0:
+                raise HTTPException(status_code=404, detail="Personal no encontrado")
+            await conn.commit()
+            return {"detail": "Personal eliminado exitosamente"}
+    except Exception as e:
+        print(f"Error al eliminar personal: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error al eliminar el personal")
+    

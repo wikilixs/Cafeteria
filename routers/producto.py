@@ -10,17 +10,16 @@ class Producto(BaseModel):
     id_producto: int
     id_categoria: int
     nombre: str
-    precio: float
-    precio_costo: float
+    costo: Decimal
+    precio_venta: Decimal
     activo: bool
 
 class ProductoInsert(BaseModel):
     id_categoria: int
     nombre: str
-    precio: float
-    precio_costo: float
+    costo: Decimal
+    precio_venta: Decimal
     activo: bool | None = True
-
 
 
 # LISTAR TODOS
@@ -48,7 +47,7 @@ async def listar(conn=Depends(get_conexion)):
 async def listar_por_id(id: int, conn=Depends(get_conexion)):
 
     consulta = """
-        SELECT id_producto, id_categoria, nombre, precio, precio_costo, activo
+        SELECT id_producto, id_categoria, nombre, costo, precio_venta, activo
         FROM producto
         WHERE id_producto = %s;
     """
@@ -74,21 +73,21 @@ async def crear_producto(producto: ProductoInsert, conn=Depends(get_conexion)):
 
     consulta = """
         INSERT INTO producto
-        (id_categoria, nombre, precio, precio_costo, activo)
+        (id_categoria, nombre, costo, precio_venta, activo)
         VALUES (%s, %s, %s, %s, %s)
-        RETURNING id_producto, id_categoria, nombre, precio, precio_costo, activo;
+        RETURNING id_producto, id_categoria, nombre, costo, precio_venta, activo;
     """
 
     try:
         async with conn.cursor() as cursor:
-
+ 
             await cursor.execute(
                 consulta,
                 (
                     producto.id_categoria,
                     producto.nombre,
-                    producto.precio,
-                    producto.precio_costo,
+                    producto.costo,
+                    producto.precio_venta,
                     producto.activo
                 )
             )
@@ -108,12 +107,9 @@ async def actualizar_producto(id: int, producto: ProductoInsert, conn=Depends(ge
 
     consulta = """
         UPDATE producto
-        SET nombre %s,
-    precio %s,
-    precio_costo %s,
-    activo %s
+        SET nombre = %s, costo = %s, costo = %s, precio_venta = %s, activo = %s
         WHERE id_producto = %s
-        RETURNING id_producto, nombre, descripcion, unidad_medida, precio_venta, activo;
+        RETURNING id_producto, id_categoria, nombre, costo, precio_venta, activo;
     """
 
     try:
@@ -123,10 +119,9 @@ async def actualizar_producto(id: int, producto: ProductoInsert, conn=Depends(ge
                 consulta,
                 (
                     producto.nombre,
-                    producto.precio,
-                    producto.precio_costo,
-                    producto.activo,
-                    id
+                    producto.costo,
+                    producto.precio_venta,
+                    producto.activo
                 )
             )
 
@@ -167,4 +162,3 @@ async def eliminar_producto(id: int, conn=Depends(get_conexion)):
         print(f"Error eliminando producto: {e}")
         raise HTTPException(status_code=400, detail="Error al eliminar producto")
 
-        

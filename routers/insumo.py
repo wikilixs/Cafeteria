@@ -8,98 +8,69 @@ router = APIRouter()
 class Insumo(BaseModel):
     id_insumo: int
     nombre: str
-    unidad: str | None = None
-    stock_actual : float | None = None
-    stock_minimo: Decimal | None = Decimal("0")
-    stock_maximo: float | None = None
-    activo: bool | None = True
-
+    unidad: str
+    stock : float
+    activo: bool 
 
 class InsumoInsert(BaseModel):
     nombre: str
-    unidad: str | None = None
-    stock_actual : float | None = None
-    stock_minimo: Decimal | None = Decimal("0")
-    stock_maximo: float | None = None
+    unidad: str
+    stock : float
     activo: bool | None = True
 
-# LISTAR TODOS
 @router.get("/")
 async def listar(conn=Depends(get_conexion)):
     consulta = """
-        SELECT *
-        FROM insumo;
+        SELECT * FROM insumo;
     """
     try:
         async with conn.cursor() as cursor:
             await cursor.execute(consulta)
             return await cursor.fetchall()
     except Exception as e:
-        print(f"Error listado de insumos: {e}")
+        print(f"Error listado gral de Psycopg: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
-
-
-# LISTAR POR ID
-@router.get("/{id}")
-async def listar_por_id(id: int, conn=Depends(get_conexion)):
+    
+@router.get("/{id_insumo}")
+async def obtener(id_insumo: int, conn=Depends(get_conexion)):
     consulta = """
-        SELECT id_insumo, nombre, unidad, stock_actual, stock_minimo, stock_maximo, activo
-        FROM insumo
-        WHERE id_insumo = %s;
+        SELECT * FROM insumo WHERE id_insumo = %s;
     """
     try:
         async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (id,))
+            await cursor.execute(consulta, (id_insumo,))
             resultado = await cursor.fetchone()
-
-            if resultado is None:
+            if resultado:
+                return resultado
+            else:
                 raise HTTPException(status_code=404, detail="Insumo no encontrado")
-
-            return resultado
     except Exception as e:
-        print(f"Error listado por id: {e}")
+        print(f"Error al obtener insumo por ID en Psycopg: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
-
-
-# CREAR INSUMO
+    
 @router.post("/")
-async def crear_insumo(insumo: InsumoInsert, conn=Depends(get_conexion)):
+async def crear(insumo: InsumoInsert, conn=Depends(get_conexion)):
     consulta = """
-        INSERT INTO insumo (nombre, unidad, stock_actual, stock_minimo, stock_maximo, activo)
-        VALUES (%s, %s, %s, %s, %s)
-        RETURNING id_insumo, id_insumo, nombre, unidad, stock_actual, stock_minimo, stock_maximo, activo;
+        INSERT INTO insumo (nombre, unidad, stock, activo) VALUES (%s, %s, %s, %s) RETURNING id_insumo;
     """
     try:
         async with conn.cursor() as cursor:
-            await cursor.execute(
-                consulta,
-                (
-                    insumo.nombre,
-                    insumo.categoria,
-                    insumo.unidad_medida,
-                    insumo.stock_minimo,
-                    insumo.activo
-                )
-            )
-            return await cursor.fetchone()
+            await cursor.execute(consulta, (insumo.nombre, insumo.unidad, insumo.stock, insumo.activo))
+            id_insumo = await cursor.fetchone()
+            await conn.commit()
+            return {"id_insumo": id_insumo[0], **insumo.dict()}
     except Exception as e:
-        print(f"Error creando insumo: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error al crear el insumo")
+        print(f"Error al crear insumo en Psycopg: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+    
 
-
-# ACTUALIZAR INSUMO
-@router.put("/{id}")
-async def actualizar_insumo(id: int, insumo: InsumoInsert, conn=Depends(get_conexion)):
+@router.put("/{id_insumo}")
+async def actualizar(id_insumo: int, insumo: InsumoInsert, conn=Depends(get_conexion)):
     consulta = """
         UPDATE insumo
-        SET    nombre %s, 
-    unidad %s,
-    stock_actual %s,
-    stock_minimo %s,
-    stock_maximo %s, 
-    activo %s
+        SET nombre = %s, unidad = %s, stock = %s, activo = %s
         WHERE id_insumo = %s
-        RETURNING id_insumo, id_insumo, nombre, unidad, stock_actual, stock_minimo, stock_maximo, activo;
+        RETURNING id_insumo, nombre, unidad, stock, activo;
     """
     try:
         async with conn.cursor() as cursor:
@@ -107,42 +78,37 @@ async def actualizar_insumo(id: int, insumo: InsumoInsert, conn=Depends(get_cone
                 consulta,
                 (
                     insumo.nombre,
-                    insumo.categoria,
-                    insumo.unidad_medida,
-                    insumo.stock_minimo,
+                    insumo.unidad,
+                    insumo.stock,
                     insumo.activo,
-                    id
+                    id_insumo
                 )
             )
-
             resultado = await cursor.fetchone()
-
-            if resultado is None:
+            if resultado:
+                await conn.commit()
+                return resultado
+            else:
                 raise HTTPException(status_code=404, detail="Insumo no encontrado")
-
-            return resultado
     except Exception as e:
-        print(f"Error actualizando insumo: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error al actualizar el insumo")
+        print(f"Error al actualizar insumo en Psycopg: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
 
-
-# ELIMINAR INSUMO
-@router.delete("/{id}")
-async def eliminar_insumo(id: int, conn=Depends(get_conexion)):
+@router.delete("/{id_insumo}")
+async def eliminar(id_insumo: int, conn=Depends(get_conexion)):
     consulta = """
-        DELETE FROM insumo
-        WHERE id_insumo = %s
-        RETURNING id_insumo;
+        DELETE FROM insumo WHERE id_insumo = %s RETURNING id_insumo;
     """
     try:
         async with conn.cursor() as cursor:
-            await cursor.execute(consulta, (id,))
+            await cursor.execute(consulta, (id_insumo,))
             resultado = await cursor.fetchone()
-
-            if resultado is None:
+            if resultado:
+                await conn.commit()
+                return {"message": "Insumo eliminado correctamente"}
+            else:
                 raise HTTPException(status_code=404, detail="Insumo no encontrado")
-
-            return {"mensaje": "Insumo eliminado correctamente"}
     except Exception as e:
-        print(f"Error eliminando insumo: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error al eliminar el insumo")
+        print(f"Error al eliminar insumo en Psycopg: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+
