@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Insumos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="page-wrapper">
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a href="admin.html" class="brand-link"><span>☕</span> Cafetería</a>
+    <span class="navbar-sep">›</span><span class="navbar-current">Insumos / Stock</span>
+  </div>
+  <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
+</nav>
+
+<main class="main-content">
+  <div class="page-header">
+    <div><h1>Insumos y Stock</h1><p>Control de inventario de materias primas</p></div>
+    <button class="btn btn-primary" id="btn-nuevo" onclick="nuevo()" style="display:none">+ Nuevo insumo</button>
+  </div>
+  <div class="table-wrapper">
+    <div class="table-toolbar">
+      <input class="table-search" type="text" placeholder="Buscar insumo..." oninput="filtrar(this.value)">
+      <button class="btn btn-secondary btn-sm" onclick="cargar()">↻ Actualizar</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Nombre</th><th>Unidad</th><th>Stock Actual</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="6" class="table-empty"><span class="empty-icon">🧂</span>Cargando...</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Modal CRUD (admin) -->
+<div class="modal-overlay" id="modal-form">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Nuevo insumo</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-form')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-group" style="grid-column:1/-1"><label>Nombre *</label><input type="text" id="f-nombre" class="form-control" placeholder="Café molido"></div>
+        <div class="form-group"><label>Unidad *</label><input type="text" id="f-unidad" class="form-control" placeholder="g / ml / unidad"></div>
+        <div class="form-group"><label>Stock inicial</label><input type="number" id="f-stock" class="form-control" step="0.01" min="0" placeholder="0"></div>
+        <div class="form-group"><label>Estado</label><select id="f-activo" class="form-control"><option value="true">Activo</option><option value="false">Inactivo</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-form')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ajuste stock (almacén) -->
+<div class="modal-overlay" id="modal-stock">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Ajustar Stock</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-stock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="stock-label" style="color:var(--color-text-muted);margin-bottom:16px"></p>
+      <div class="form-group"><label>Nuevo Stock *</label><input type="number" id="f-stock-nuevo" class="form-control" step="0.01" min="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-stock')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarStock()">Actualizar Stock</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast" class="toast"></div>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  const usuarioActual = checkAuth([1, 6]);
+  if (usuarioActual) renderUserInfo();
+  const esAdmin = usuarioActual && usuarioActual.id_rol === 1;
+  if (esAdmin) document.getElementById('btn-nuevo').style.display = 'inline-flex';
+
+  let _todos = [], _editId = null, _stockId = null;
+
+  async function cargar() {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="6" class="table-empty"><span class="empty-icon">🧂</span>Cargando...</td></tr>';
+    const res = await apiFetch('/insumo/');
+    if (!res) return;
+    _todos = await res.json();
+    renderTabla(_todos);
+  }
+
+  function renderTabla(data) {
+    const tb = document.getElementById('tbody');
+    if (!data.length) { tb.innerHTML = '<tr><td colspan="6" class="table-empty"><span class="empty-icon">🧂</span>Sin insumos registrados</td></tr>'; return; }
+    tb.innerHTML = data.map(i => {
+      const stockBadge = i.stock < 50 ? `<span class="badge badge-warning">${i.stock}</span>` : `<span class="badge badge-success">${i.stock}</span>`;
+      const acciones = esAdmin
+        ? `<button class="btn btn-secondary btn-icon" onclick="editar(${i.id_insumo})">✏️ Editar</button>
+           <button class="btn btn-danger btn-icon" onclick="eliminar(${i.id_insumo})">🗑️</button>`
+        : `<button class="btn btn-secondary btn-icon" onclick="ajustarStock(${i.id_insumo})">📦 Ajustar stock</button>`;
+      return `<tr>
+        <td>${i.id_insumo}</td>
+        <td><strong>${esc(i.nombre)}</strong></td>
+        <td>${esc(i.unidad)}</td>
+        <td>${stockBadge} ${esc(i.unidad)}</td>
+        <td>${badgeActivo(i.activo)}</td>
+        <td><div class="table-actions">${acciones}</div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filtrar(q) {
+    const t = q.toLowerCase();
+    renderTabla(_todos.filter(i => (i.nombre||'').toLowerCase().includes(t)));
+  }
+
+  function nuevo() {
+    _editId = null;
+    document.getElementById('modal-title').textContent = 'Nuevo insumo';
+    document.getElementById('f-nombre').value = '';
+    document.getElementById('f-unidad').value = '';
+    document.getElementById('f-stock').value = '0';
+    document.getElementById('f-activo').value = 'true';
+    abrirModal('modal-form');
+  }
+
+  function editar(id) {
+    const i = _todos.find(x => x.id_insumo === id);
+    if (!i) return;
+    _editId = id;
+    document.getElementById('modal-title').textContent = 'Editar insumo';
+    document.getElementById('f-nombre').value = i.nombre || '';
+    document.getElementById('f-unidad').value = i.unidad || '';
+    document.getElementById('f-stock').value = i.stock || 0;
+    document.getElementById('f-activo').value = i.activo ? 'true' : 'false';
+    abrirModal('modal-form');
+  }
+
+  function ajustarStock(id) {
+    _stockId = id;
+    const i = _todos.find(x => x.id_insumo === id);
+    document.getElementById('stock-label').textContent = `Insumo: ${i.nombre} — Stock actual: ${i.stock} ${i.unidad}`;
+    document.getElementById('f-stock-nuevo').value = i.stock;
+    abrirModal('modal-stock');
+  }
+
+  async function guardarStock() {
+    const stock = parseFloat(document.getElementById('f-stock-nuevo').value);
+    if (isNaN(stock) || stock < 0) { mostrarToast('Stock inválido', 'error'); return; }
+    const i = _todos.find(x => x.id_insumo === _stockId);
+    const body = { nombre: i.nombre, unidad: i.unidad, stock, activo: i.activo };
+    const res = await apiFetch(`/insumo/${_stockId}`, { method: 'PUT', body: JSON.stringify(body) });
+    if (res && res.ok) { mostrarToast('Stock actualizado'); cerrarModal('modal-stock'); cargar(); }
+    else { const e = await res.json(); mostrarToast(e.detail || 'Error', 'error'); }
+  }
+
+  async function eliminar(id) {
+    if (!confirmarEliminar('¿Eliminar este insumo?')) return;
+    const res = await apiFetch(`/insumo/${id}`, { method: 'DELETE' });
+    if (res && res.ok) { mostrarToast('Insumo eliminado'); cargar(); }
+    else { const e = await res.json(); mostrarToast(e.detail || 'Error', 'error'); }
+  }
+
+  async function guardar() {
+    const btn = document.getElementById('btn-guardar');
+    const nombre = document.getElementById('f-nombre').value.trim();
+    const unidad = document.getElementById('f-unidad').value.trim();
+    if (!nombre || !unidad) { mostrarToast('Nombre y unidad son requeridos', 'error'); return; }
+    btn.disabled = true;
+    const body = { nombre, unidad, stock: parseFloat(document.getElementById('f-stock').value)||0, activo: document.getElementById('f-activo').value === 'true' };
+    const url = _editId ? `/insumo/${_editId}` : '/insumo/';
+    const res = await apiFetch(url, { method: _editId ? 'PUT' : 'POST', body: JSON.stringify(body) });
+    btn.disabled = false;
+    if (res && res.ok) { mostrarToast(_editId ? 'Insumo actualizado' : 'Insumo creado'); cerrarModal('modal-form'); cargar(); }
+    else { const e = await res.json(); mostrarToast(e.detail || 'Error', 'error'); }
+  }
+
+  cargar();
+</script>
+</body>
+</html>

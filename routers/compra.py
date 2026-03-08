@@ -29,7 +29,39 @@ class DetalleCompra(BaseModel):
 class CompraRegistro(BaseModel):
     id_proveedor: Optional[int] = None
     id_usuario: int
+    observacion: Optional[str] = None
     detalles: List[DetalleCompra]
+
+@router.get("/reporte/detallado")
+async def reporte_compras(conn=Depends(get_conexion)):
+    """
+    Reporte de compras con detalle de insumos y proveedores.
+    """
+    try:
+        consulta = """
+            SELECT 
+                c.id_compra,
+                c.fecha,
+                c.observacion,
+                pr.nombre as proveedor,
+                i.nombre as insumo,
+                dc.cantidad,
+                dc.costo_unitario,
+                (dc.cantidad * dc.costo_unitario) as subtotal,
+                SUM(dc.cantidad * dc.costo_unitario) OVER (PARTITION BY c.id_compra) as total
+            FROM compra c
+            LEFT JOIN proveedor pr ON c.id_proveedor = pr.id_proveedor
+            LEFT JOIN detalle_compra dc ON c.id_compra = dc.id_compra
+            LEFT JOIN insumo i ON dc.id_insumo = i.id_insumo
+            ORDER BY c.id_compra DESC, dc.id_detalle_compra
+        """
+        
+        async with conn.cursor() as cursor:
+            await cursor.execute(consulta)
+            return await cursor.fetchall()
+    except Exception as e:
+        print(f"Error en reporte de compras: {e}")
+        raise HTTPException(status_code=400, detail="Error al generar reporte")
 
 @router.get("/")
 async def listar_compras(conn=Depends(get_conexion)):
@@ -75,7 +107,7 @@ async def crear_compra(compra: CompraRegistro, conn=Depends(get_conexion)):
     """
     try:
         detalles_dict = [d.dict() for d in compra.detalles]
-        resultado = await registrar_compra(conn, compra.id_proveedor, compra.id_usuario, detalles_dict)
+        resultado = await registrar_compra(conn, compra.id_proveedor, compra.id_usuario, detalles_dict, observacion=compra.observacion)
         return resultado
     except HTTPException:
         raise

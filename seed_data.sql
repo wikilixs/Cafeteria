@@ -2,10 +2,10 @@
 INSERT INTO rol (nombre) VALUES
     ('Administrador'),
     ('Cajero'),
-    ('Cocinero')
-    ('Mesero')
-    ('Barista')
-    ('Encargado de Almacén')
+    ('Cocinero'),
+    ('Mesero'),
+    ('Barista'),
+    ('Encargado de Almacén'),
     ('Encargado de Limpieza');
 
 

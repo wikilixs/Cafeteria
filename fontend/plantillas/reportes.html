@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Reportes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    /* Tabs */
+    .tab-bar {
+      display: flex; gap: 4px; margin-bottom: 24px;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      padding: 6px; border-radius: var(--radius); flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 9px 20px; border: none; border-radius: var(--radius-sm);
+      font-family: var(--font); font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      background: transparent; color: var(--color-text-muted);
+    }
+    .tab-btn:hover { background: var(--color-surface-2); color: var(--color-text); }
+    .tab-btn.active { background: var(--color-primary); color: #0f1117; }
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
+
+    /* Filtros */
+    .filters-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; padding: 14px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-size: .73rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .5px; }
+    .filter-input { padding: 7px 11px; background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text); font-family: var(--font); font-size: .88rem; outline: none; min-width: 130px; }
+    .filter-input:focus { border-color: var(--color-primary); }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a href="admin.html" class="brand-link"><span>☕</span> Cafetería</a>
+    <span class="navbar-sep">›</span><span class="navbar-current">Reportes</span>
+  </div>
+  <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
+</nav>
+
+<main class="main-content">
+  <div class="page-header">
+    <div><h1>Reportes y Estadísticas</h1><p>Consulta y exporta información de todos los módulos</p></div>
+    <button class="btn btn-secondary btn-sm" onclick="exportarCSV()">⬇️ Exportar CSV</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="cambiarTab('ventas')">📊 Ventas</button>
+    <button class="tab-btn" onclick="cambiarTab('compras')">📦 Compras</button>
+    <button class="tab-btn" onclick="cambiarTab('stock')">🧂 Stock / Insumos</button>
+    <button class="tab-btn" onclick="cambiarTab('personal')">👥 Personal</button>
+  </div>
+
+  <!-- ===== TAB VENTAS ===== -->
+  <div class="tab-section active" id="tab-ventas">
+    <div class="filters-bar">
+      <div class="filter-group"><label>Fecha inicio</label><input type="date" id="v-inicio" class="filter-input"></div>
+      <div class="filter-group"><label>Fecha fin</label><input type="date" id="v-fin" class="filter-input"></div>
+      <div class="filter-group"><label>Usuario</label><select id="v-usuario" class="filter-input"><option value="">Todos</option></select></div>
+      <button class="btn btn-primary btn-sm" onclick="cargarVentas()">🔍 Buscar</button>
+      <button class="btn btn-secondary btn-sm" onclick="limpiarVentas()">✕ Limpiar</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Ventas</div><div class="stat-value" id="vs-count">—</div><div class="stat-sub">registros</div></div>
+      <div class="stat-card"><div class="stat-label">Ingresos Totales</div><div class="stat-value" id="vs-total">—</div><div class="stat-sub">bolivianos</div></div>
+      <div class="stat-card"><div class="stat-label">Ticket Promedio</div><div class="stat-value" id="vs-avg">—</div><div class="stat-sub">por venta</div></div>
+      <div class="stat-card"><div class="stat-label">Producto Top</div><div class="stat-value" style="font-size:.95rem" id="vs-top">—</div><div class="stat-sub">más vendido</div></div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Fecha</th><th>Estado</th><th>Cliente</th><th>Usuario</th><th>Producto</th><th>Cant.</th><th>P.Unit.</th><th>Subtotal</th><th>Total</th></tr></thead>
+        <tbody id="tbody-ventas"><tr><td colspan="10" class="table-empty"><span class="empty-icon">📊</span>Usa los filtros y presiona Buscar</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== TAB COMPRAS ===== -->
+  <div class="tab-section" id="tab-compras">
+    <div class="filters-bar">
+      <div class="filter-group"><label>Fecha inicio</label><input type="date" id="c-inicio" class="filter-input"></div>
+      <div class="filter-group"><label>Fecha fin</label><input type="date" id="c-fin" class="filter-input"></div>
+      <div class="filter-group"><label>Proveedor</label><select id="c-prov" class="filter-input"><option value="">Todos</option></select></div>
+      <button class="btn btn-primary btn-sm" onclick="cargarCompras()">🔍 Buscar</button>
+      <button class="btn btn-secondary btn-sm" onclick="limpiarCompras()">✕ Limpiar</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Compras</div><div class="stat-value" id="cs-count">—</div><div class="stat-sub">registros</div></div>
+      <div class="stat-card"><div class="stat-label">Gasto Total</div><div class="stat-value" id="cs-total">—</div><div class="stat-sub">bolivianos</div></div>
+      <div class="stat-card"><div class="stat-label">Compra Promedio</div><div class="stat-value" id="cs-avg">—</div><div class="stat-sub">por compra</div></div>
+      <div class="stat-card"><div class="stat-label">Insumo más comprado</div><div class="stat-value" style="font-size:.95rem" id="cs-top">—</div><div class="stat-sub">en cantidad</div></div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Fecha</th><th>Proveedor</th><th>Observación</th><th>Insumo</th><th>Cantidad</th><th>Costo Unit.</th><th>Subtotal</th><th>Total</th></tr></thead>
+        <tbody id="tbody-compras"><tr><td colspan="9" class="table-empty"><span class="empty-icon">📦</span>Usa los filtros y presiona Buscar</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== TAB STOCK ===== -->
+  <div class="tab-section" id="tab-stock">
+    <div class="filters-bar">
+      <div class="filter-group"><label>Buscar insumo</label><input type="text" id="s-busca" class="filter-input" placeholder="Nombre..." oninput="filtrarStock(this.value)"></div>
+      <div class="filter-group"><label>Estado</label>
+        <select id="s-estado" class="filter-input" onchange="filtrarStock(document.getElementById('s-busca').value)">
+          <option value="">Todos</option><option value="activo">Activos</option><option value="inactivo">Inactivos</option>
+        </select>
+      </div>
+      <div class="filter-group"><label>Stock</label>
+        <select id="s-stock" class="filter-input" onchange="filtrarStock(document.getElementById('s-busca').value)">
+          <option value="">Todos</option><option value="bajo">Stock bajo (&lt;50)</option><option value="ok">Stock ok (≥50)</option>
+        </select>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="cargarStock()">↻ Actualizar</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Insumos</div><div class="stat-value" id="ss-count">—</div><div class="stat-sub">registros</div></div>
+      <div class="stat-card"><div class="stat-label">Stock bajo</div><div class="stat-value" id="ss-bajo" style="color:var(--color-error)">—</div><div class="stat-sub">insumos &lt; 50</div></div>
+      <div class="stat-card"><div class="stat-label">Activos</div><div class="stat-value" id="ss-activos" style="color:var(--color-success)">—</div><div class="stat-sub">en uso</div></div>
+      <div class="stat-card"><div class="stat-label">Mayor stock</div><div class="stat-value" style="font-size:.95rem" id="ss-top">—</div><div class="stat-sub">insumo</div></div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Nombre</th><th>Unidad</th><th>Stock Actual</th><th>Estado</th></tr></thead>
+        <tbody id="tbody-stock"><tr><td colspan="5" class="table-empty"><span class="empty-icon">🧂</span>Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== TAB PERSONAL ===== -->
+  <div class="tab-section" id="tab-personal">
+    <div class="filters-bar">
+      <div class="filter-group"><label>Buscar</label><input type="text" id="p-busca" class="filter-input" placeholder="Nombre o CI..." oninput="filtrarPersonal(this.value)"></div>
+      <div class="filter-group"><label>Rol</label><select id="p-rol" class="filter-input" onchange="filtrarPersonal(document.getElementById('p-busca').value)"><option value="">Todos</option></select></div>
+      <div class="filter-group"><label>Estado</label>
+        <select id="p-estado" class="filter-input" onchange="filtrarPersonal(document.getElementById('p-busca').value)">
+          <option value="">Todos</option><option value="activo">Activos</option><option value="inactivo">Inactivos</option>
+        </select>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="cargarPersonal()">↻ Actualizar</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Personal</div><div class="stat-value" id="ps-count">—</div><div class="stat-sub">empleados</div></div>
+      <div class="stat-card"><div class="stat-label">Activos</div><div class="stat-value" id="ps-activos" style="color:var(--color-success)">—</div><div class="stat-sub">en servicio</div></div>
+      <div class="stat-card"><div class="stat-label">Inactivos</div><div class="stat-value" id="ps-inactivos" style="color:var(--color-error)">—</div><div class="stat-sub">sin acceso</div></div>
+      <div class="stat-card"><div class="stat-label">Roles distintos</div><div class="stat-value" id="ps-roles">—</div><div class="stat-sub">en sistema</div></div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Nombre Completo</th><th>Rol</th><th>CI</th><th>Teléfono</th><th>F. Ingreso</th><th>Estado</th></tr></thead>
+        <tbody id="tbody-personal"><tr><td colspan="7" class="table-empty"><span class="empty-icon">👥</span>Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<div id="app-toast" class="toast"></div>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  checkAuth([1]);
+  renderUserInfo();
+
+  let _tabActual = 'ventas';
+  let _datosVentas = [], _datosCompras = [], _datosStock = [], _datosPersonal = [];
+  let _rolesMap = {};
+
+  // ============================
+  //   Tabs
+  // ============================
+  function cambiarTab(tab) {
+    _tabActual = tab;
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      const tabs = ['ventas','compras','stock','personal'];
+      b.classList.toggle('active', tabs[i] === tab);
+    });
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    // autocargar si primera vez
+    if (tab === 'stock' && !_datosStock.length) cargarStock();
+    if (tab === 'personal' && !_datosPersonal.length) cargarPersonal();
+  }
+
+  // ============================
+  //   VENTAS
+  // ============================
+  async function initVentas() {
+    const hoy = new Date();
+    document.getElementById('v-fin').value = hoy.toISOString().split('T')[0];
+    hoy.setMonth(hoy.getMonth() - 1);
+    document.getElementById('v-inicio').value = hoy.toISOString().split('T')[0];
+    const ru = await apiFetch('/usuario/');
+    if (ru) {
+      const us = await ru.json();
+      const sel = document.getElementById('v-usuario');
+      us.forEach(u => sel.innerHTML += `<option value="${u.id_usuario}">${esc(u.email||u.nombre||'Usuario '+u.id_usuario)}</option>`);
+    }
+    cargarVentas();
+  }
+
+  async function cargarVentas() {
+    document.getElementById('tbody-ventas').innerHTML = '<tr><td colspan="10" class="table-empty"><span class="empty-icon">📊</span>Cargando...</td></tr>';
+    let url = '/venta/reporte/detallado?';
+    const fi = document.getElementById('v-inicio').value;
+    const ff = document.getElementById('v-fin').value;
+    const fu = document.getElementById('v-usuario').value;
+    if (fi) url += `fecha_inicio=${fi}&`;
+    if (ff) url += `fecha_fin=${ff}&`;
+    if (fu) url += `id_usuario=${fu}&`;
+    const res = await apiFetch(url);
+    if (!res) return;
+    _datosVentas = await res.json();
+    renderVentas(_datosVentas);
+    calcStatsVentas(_datosVentas);
+  }
+
+  function renderVentas(data) {
+    const tb = document.getElementById('tbody-ventas');
+    if (!data.length) { tb.innerHTML = '<tr><td colspan="10" class="table-empty"><span class="empty-icon">📊</span>Sin resultados</td></tr>'; return; }
+    tb.innerHTML = data.map(r => `
+      <tr>
+        <td>${r.id_venta}</td>
+        <td>${formatFecha(r.fecha)}</td>
+        <td><span class="badge ${r.estado==='COMPLETADA'?'badge-success':r.estado==='CANCELADA'?'badge-error':'badge-warning'}">${esc(r.estado||'—')}</span></td>
+        <td>${esc(r.cliente||'—')}</td>
+        <td>${esc(r.usuario||'—')}</td>
+        <td>${esc(r.producto||'—')}</td>
+        <td>${r.cantidad||0}</td>
+        <td>${formatBs(r.precio_unitario)}</td>
+        <td>${formatBs(r.subtotal)}</td>
+        <td><strong>${formatBs(r.total)}</strong></td>
+      </tr>`).join('');
+  }
+
+  function calcStatsVentas(data) {
+    const ids = [...new Set(data.map(r => r.id_venta))];
+    const total = ids.reduce((acc, id) => acc + parseFloat((data.find(r => r.id_venta === id))?.total || 0), 0);
+    const avg = ids.length ? total / ids.length : 0;
+    const prodMap = {};
+    data.forEach(r => { if (r.producto) prodMap[r.producto] = (prodMap[r.producto]||0) + (r.cantidad||0); });
+    const top = Object.entries(prodMap).sort((a,b) => b[1]-a[1])[0];
+    document.getElementById('vs-count').textContent = ids.length;
+    document.getElementById('vs-total').textContent = formatBs(total);
+    document.getElementById('vs-avg').textContent = formatBs(avg);
+    document.getElementById('vs-top').textContent = top ? `${top[0]} (${top[1]})` : '—';
+  }
+
+  function limpiarVentas() {
+    document.getElementById('v-usuario').value = '';
+    const hoy = new Date();
+    document.getElementById('v-fin').value = hoy.toISOString().split('T')[0];
+    hoy.setMonth(hoy.getMonth() - 1);
+    document.getElementById('v-inicio').value = hoy.toISOString().split('T')[0];
+    cargarVentas();
+  }
+
+  // ============================
+  //   COMPRAS
+  // ============================
+  async function initCompras() {
+    const hoy = new Date();
+    document.getElementById('c-fin').value = hoy.toISOString().split('T')[0];
+    hoy.setMonth(hoy.getMonth() - 1);
+    document.getElementById('c-inicio').value = hoy.toISOString().split('T')[0];
+    const rp = await apiFetch('/proveedor/');
+    if (rp) {
+      const provs = await rp.json();
+      const sel = document.getElementById('c-prov');
+      provs.forEach(p => sel.innerHTML += `<option value="${p.id_proveedor}">${esc(p.nombre)}</option>`);
+    }
+  }
+
+  async function cargarCompras() {
+    document.getElementById('tbody-compras').innerHTML = '<tr><td colspan="9" class="table-empty"><span class="empty-icon">📦</span>Cargando...</td></tr>';
+    const res = await apiFetch('/compra/reporte/detallado');
+    if (!res) return;
+    let data = await res.json();
+
+    // Filtros locales por fecha y proveedor
+    const fi = document.getElementById('c-inicio').value;
+    const ff = document.getElementById('c-fin').value;
+    const fp = document.getElementById('c-prov').value;
+    if (fi) data = data.filter(r => r.fecha >= fi);
+    if (ff) data = data.filter(r => r.fecha <= ff + 'T23:59:59');
+    if (fp) data = data.filter(r => String(r.id_proveedor) === fp);
+
+    _datosCompras = data;
+    renderCompras(data);
+    calcStatsCompras(data);
+  }
+
+  function renderCompras(data) {
+    const tb = document.getElementById('tbody-compras');
+    if (!data.length) { tb.innerHTML = '<tr><td colspan="9" class="table-empty"><span class="empty-icon">📦</span>Sin resultados</td></tr>'; return; }
+    tb.innerHTML = data.map(r => `
+      <tr>
+        <td>${r.id_compra}</td>
+        <td>${formatFecha(r.fecha)}</td>
+        <td>${esc(r.proveedor||'—')}</td>
+        <td>${esc(r.observacion||'—')}</td>
+        <td>${esc(r.insumo||'—')}</td>
+        <td>${r.cantidad||0}</td>
+        <td>${formatBs(r.costo_unitario)}</td>
+        <td>${formatBs(r.subtotal)}</td>
+        <td><strong>${formatBs(r.total)}</strong></td>
+      </tr>`).join('');
+  }
+
+  function calcStatsCompras(data) {
+    const ids = [...new Set(data.map(r => r.id_compra))];
+    const total = ids.reduce((acc, id) => acc + parseFloat((data.find(r => r.id_compra === id))?.total || 0), 0);
+    const avg = ids.length ? total / ids.length : 0;
+    const insMap = {};
+    data.forEach(r => { if (r.insumo) insMap[r.insumo] = (insMap[r.insumo]||0) + (r.cantidad||0); });
+    const top = Object.entries(insMap).sort((a,b) => b[1]-a[1])[0];
+    document.getElementById('cs-count').textContent = ids.length;
+    document.getElementById('cs-total').textContent = formatBs(total);
+    document.getElementById('cs-avg').textContent = formatBs(avg);
+    document.getElementById('cs-top').textContent = top ? `${top[0]} (${top[1]})` : '—';
+  }
+
+  function limpiarCompras() {
+    document.getElementById('c-prov').value = '';
+    const hoy = new Date();
+    document.getElementById('c-fin').value = hoy.toISOString().split('T')[0];
+    hoy.setMonth(hoy.getMonth() - 1);
+    document.getElementById('c-inicio').value = hoy.toISOString().split('T')[0];
+    cargarCompras();
+  }
+
+  // ============================
+  //   STOCK
+  // ============================
+  async function cargarStock() {
+    document.getElementById('tbody-stock').innerHTML = '<tr><td colspan="5" class="table-empty"><span class="empty-icon">🧂</span>Cargando...</td></tr>';
+    const res = await apiFetch('/insumo/');
+    if (!res) return;
+    _datosStock = await res.json();
+    filtrarStock('');
+    // Stats
+    const bajo = _datosStock.filter(i => i.stock < 50).length;
+    const activos = _datosStock.filter(i => i.activo).length;
+    const top = [..._datosStock].sort((a,b) => b.stock - a.stock)[0];
+    document.getElementById('ss-count').textContent = _datosStock.length;
+    document.getElementById('ss-bajo').textContent = bajo;
+    document.getElementById('ss-activos').textContent = activos;
+    document.getElementById('ss-top').textContent = top ? `${top.nombre} (${top.stock})` : '—';
+  }
+
+  function filtrarStock(q) {
+    let data = _datosStock;
+    const t = q.toLowerCase();
+    if (t) data = data.filter(i => i.nombre.toLowerCase().includes(t));
+    const est = document.getElementById('s-estado').value;
+    if (est === 'activo') data = data.filter(i => i.activo);
+    if (est === 'inactivo') data = data.filter(i => !i.activo);
+    const stk = document.getElementById('s-stock').value;
+    if (stk === 'bajo') data = data.filter(i => i.stock < 50);
+    if (stk === 'ok') data = data.filter(i => i.stock >= 50);
+    const tb = document.getElementById('tbody-stock');
+    if (!data.length) { tb.innerHTML = '<tr><td colspan="5" class="table-empty"><span class="empty-icon">🧂</span>Sin insumos</td></tr>'; return; }
+    tb.innerHTML = data.map(i => {
+      const stockBadge = i.stock < 50
+        ? `<span class="badge badge-warning">⚠ ${i.stock} ${esc(i.unidad)}</span>`
+        : `<span class="badge badge-success">${i.stock} ${esc(i.unidad)}</span>`;
+      return `<tr>
+        <td>${i.id_insumo}</td>
+        <td><strong>${esc(i.nombre)}</strong></td>
+        <td>${esc(i.unidad)}</td>
+        <td>${stockBadge}</td>
+        <td>${i.activo ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-error">Inactivo</span>'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ============================
+  //   PERSONAL
+  // ============================
+  async function cargarPersonal() {
+    document.getElementById('tbody-personal').innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">👥</span>Cargando...</td></tr>';
+    const [rP, rR] = await Promise.all([apiFetch('/personal/'), apiFetch('/rol/')]);
+    if (!rP || !rR) return;
+    _datosPersonal = await rP.json();
+    const roles = await rR.json();
+    _rolesMap = Object.fromEntries(roles.map(r => [r.id_rol, r.nombre]));
+    // Poblar selector rol
+    const selRol = document.getElementById('p-rol');
+    selRol.innerHTML = '<option value="">Todos</option>';
+    roles.forEach(r => selRol.innerHTML += `<option value="${r.id_rol}">${esc(r.nombre)}</option>`);
+    filtrarPersonal('');
+    // Stats
+    const activos = _datosPersonal.filter(p => p.activo).length;
+    const rolesDistintos = new Set(_datosPersonal.map(p => p.id_rol)).size;
+    document.getElementById('ps-count').textContent = _datosPersonal.length;
+    document.getElementById('ps-activos').textContent = activos;
+    document.getElementById('ps-inactivos').textContent = _datosPersonal.length - activos;
+    document.getElementById('ps-roles').textContent = rolesDistintos;
+  }
+
+  function filtrarPersonal(q) {
+    let data = _datosPersonal;
+    const t = q.toLowerCase();
+    if (t) data = data.filter(p => `${p.nombres} ${p.primer_apellido} ${p.ci}`.toLowerCase().includes(t));
+    const rol = document.getElementById('p-rol').value;
+    if (rol) data = data.filter(p => String(p.id_rol) === rol);
+    const est = document.getElementById('p-estado').value;
+    if (est === 'activo') data = data.filter(p => p.activo);
+    if (est === 'inactivo') data = data.filter(p => !p.activo);
+    const tb = document.getElementById('tbody-personal');
+    if (!data.length) { tb.innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">👥</span>Sin resultados</td></tr>'; return; }
+    tb.innerHTML = data.map(p => `
+      <tr>
+        <td>${p.id_personal}</td>
+        <td><strong>${esc(p.nombres)}</strong> ${esc(p.primer_apellido)} ${esc(p.segundo_apellido||'')}</td>
+        <td><span class="badge badge-info">${esc(_rolesMap[p.id_rol]||'—')}</span></td>
+        <td>${p.ci}</td>
+        <td>${p.telefono||'—'}</td>
+        <td>${formatFecha(p.fecha_ingreso)}</td>
+        <td>${p.activo ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-error">Inactivo</span>'}</td>
+      </tr>`).join('');
+  }
+
+  // ============================
+  //   EXPORTAR CSV
+  // ============================
+  function exportarCSV() {
+    const configs = {
+      ventas: {
+        datos: _datosVentas,
+        cols: ['id_venta','fecha','estado','cliente','usuario','producto','cantidad','precio_unitario','subtotal','total'],
+        nombre: 'reporte_ventas'
+      },
+      compras: {
+        datos: _datosCompras,
+        cols: ['id_compra','fecha','proveedor','observacion','insumo','cantidad','costo_unitario','subtotal','total'],
+        nombre: 'reporte_compras'
+      },
+      stock: {
+        datos: _datosStock,
+        cols: ['id_insumo','nombre','unidad','stock','activo'],
+        nombre: 'reporte_stock'
+      },
+      personal: {
+        datos: _datosPersonal.map(p => ({
+          ...p,
+          rol: _rolesMap[p.id_rol]||'',
+          nombre_completo: `${p.nombres} ${p.primer_apellido} ${p.segundo_apellido||''}`.trim(),
+          estado: p.activo ? 'Activo' : 'Inactivo'
+        })),
+        cols: ['id_personal','nombre_completo','rol','ci','telefono','fecha_ingreso','estado'],
+        nombre: 'reporte_personal'
+      }
+    };
+    const cfg = configs[_tabActual];
+    if (!cfg.datos.length) { mostrarToast('Sin datos para exportar', 'info'); return; }
+    const rows = [cfg.cols.join(','), ...cfg.datos.map(r => cfg.cols.map(c => `"${r[c]??''}"`).join(','))];
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${cfg.nombre}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    mostrarToast('✅ CSV exportado');
+  }
+
+  // ============================
+  //   INIT
+  // ============================
+  window.addEventListener('DOMContentLoaded', async () => {
+    await Promise.all([initVentas(), initCompras()]);
+    cargarStock();
+    cargarPersonal();
+  });
+</script>
+</body>
+</html>

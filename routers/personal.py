@@ -5,6 +5,9 @@ from config.conexionDB import pool, get_conexion, app
 from services.creacion_empleado import crear_empleado
 from datetime import date
 from typing import Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -25,19 +28,20 @@ class PersonalCreate(BaseModel):
     ci: int
     nombres: str
     primer_apellido: str
-    segundo_apellido: str
-    fecha_nacimiento: date
-    telefono: int
+    segundo_apellido: Optional[str] = None
+    fecha_nacimiento: Optional[date] = None
+    telefono: Optional[int] = None
     fecha_ingreso: date
+    activo: Optional[bool] = True
 
 class PersonalCreateSimple(BaseModel):
     id_rol: int
     ci: int
     nombres: str
     primer_apellido: str
-    segundo_apellido: str
-    fecha_nacimiento: date
-    telefono: int
+    segundo_apellido: Optional[str] = None
+    fecha_nacimiento: Optional[date] = None
+    telefono: Optional[int] = None
     fecha_ingreso: date
     crear_usuario: bool = False
 
@@ -45,7 +49,11 @@ class PersonalCreateSimple(BaseModel):
 @router.get("/")
 async def listar(conn=Depends(get_conexion)):
     consulta = """
-        SELECT * FROM personal;
+        SELECT 
+            p.*,
+            r.nombre as rol_nombre
+        FROM personal p
+        LEFT JOIN rol r ON p.id_rol = r.id_rol;
     """
     try:
         async with conn.cursor() as cursor:
@@ -127,7 +135,7 @@ async def crear_personal(personal: PersonalCreate, conn=Depends(get_conexion)):
 @router.put("/{id_personal}")
 async def actualizar_personal(id_personal: int, personal: PersonalCreate, conn=Depends(get_conexion)):
     consulta = """
-        UPDATE personal SET id_rol = %s, ci = %s, nombres = %s, primer_apellido = %s, segundo_apellido = %s, fecha_nacimiento = %s, telefono = %s, fecha_ingreso = %s
+        UPDATE personal SET id_rol = %s, ci = %s, nombres = %s, primer_apellido = %s, segundo_apellido = %s, fecha_nacimiento = %s, telefono = %s, fecha_ingreso = %s, activo = %s
         WHERE id_personal = %s;
     """
     try:
@@ -141,14 +149,17 @@ async def actualizar_personal(id_personal: int, personal: PersonalCreate, conn=D
                 personal.fecha_nacimiento,
                 personal.telefono,
                 personal.fecha_ingreso,
+                personal.activo,
                 id_personal
             ))
             if cursor.rowcount == 0:
                 raise HTTPException(status_code=404, detail="Personal no encontrado")
             await conn.commit()
             return {"detail": "Personal actualizado exitosamente"}
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Error al actualizar personal: {e}")
+        logger.error(f"Error al actualizar personal: {e}", exc_info=True)
         raise HTTPException(status_code=400, detail="Ocurrió un error al actualizar el personal")
 
 

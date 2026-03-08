@@ -39,7 +39,7 @@ async def _obtener_o_crear_insumo(cur, nombre, unidad, cantidad):
     return nuevo["id_insumo"]
 
 
-async def registrar_compra(conn, id_proveedor, id_usuario, detalles):
+async def registrar_compra(conn, id_proveedor, id_usuario, detalles, observacion=None):
     """
     Registra una compra con detalles de insumos y actualiza el stock.
 
@@ -85,11 +85,11 @@ async def registrar_compra(conn, id_proveedor, id_usuario, detalles):
         # 1. Insertar cabecera de compra
         await cur.execute(
             """
-            INSERT INTO compra (id_proveedor, id_usuario, fecha)
-            VALUES (%s, %s, NOW())
+            INSERT INTO compra (id_proveedor, id_usuario, fecha, observacion)
+            VALUES (%s, %s, NOW(), %s)
             RETURNING id_compra
             """,
-            (id_proveedor, id_usuario)
+            (id_proveedor, id_usuario, observacion)
         )
         row = await cur.fetchone()
         id_compra = row["id_compra"]

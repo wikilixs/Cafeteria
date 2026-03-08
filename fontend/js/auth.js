@@ -2,7 +2,9 @@
    auth.js — Módulo de autenticación JWT para frontend vanilla
    ============================================================ */
 
-const API_BASE = 'http://localhost:8000';  // Apuntar explícitamente al servidor FastAPI
+// API_BASE is defined in api.js (loaded after this file) — do NOT declare it here again.
+// Using a local fallback only for the login() function below.
+const _AUTH_BASE = 'http://localhost:8000';
 
 const AUTH_KEY   = 'cafeteria_token';
 const USER_KEY   = 'cafeteria_user';
@@ -59,7 +61,7 @@ async function login(email, password) {
   console.log('🔐 [auth.login] Iniciando login con email:', email);
   
   try {
-    const endpoint = `${API_BASE}/auth/login`;
+    const endpoint = `${_AUTH_BASE}/auth/login`;
     console.log('📡 [auth.login] Endpoint:', endpoint);
     
     const resp = await fetch(endpoint, {

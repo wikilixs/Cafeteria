@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Personal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="page-wrapper">
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a href="admin.html" class="brand-link"><span>☕</span> Cafetería</a>
+    <span class="navbar-sep">›</span><span class="navbar-current">Personal</span>
+  </div>
+  <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
+</nav>
+
+<main class="main-content">
+  <div class="page-header">
+    <div><h1>Gestión de Personal</h1><p>Empleados registrados en el sistema</p></div>
+    <button class="btn btn-primary" onclick="nuevo()">+ Nuevo empleado</button>
+  </div>
+  <div class="table-wrapper">
+    <div class="table-toolbar">
+      <input class="table-search" type="text" placeholder="Buscar por nombre o CI..." oninput="filtrar(this.value)">
+      <button class="btn btn-secondary btn-sm" onclick="cargar()">↻ Actualizar</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Nombre Completo</th><th>Rol</th><th>CI</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="7" class="table-empty"><span class="empty-icon">👥</span>Cargando...</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-form">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Nuevo empleado</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-form')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-group"><label>Nombres *</label><input type="text" id="f-nombres" class="form-control" placeholder="Carlos"></div>
+        <div class="form-group"><label>Primer Apellido *</label><input type="text" id="f-ap1" class="form-control" placeholder="Mamani"></div>
+        <div class="form-group"><label>Segundo Apellido</label><input type="text" id="f-ap2" class="form-control" placeholder="Quispe"></div>
+        <div class="form-group"><label>CI *</label><input type="number" id="f-ci" class="form-control" placeholder="12345678"></div>
+        <div class="form-group"><label>Rol *</label><select id="f-rol" class="form-control"></select></div>
+        <div class="form-group"><label>Teléfono</label><input type="number" id="f-tel" class="form-control" placeholder="70012345"></div>
+        <div class="form-group"><label>Fecha Nacimiento</label><input type="date" id="f-nac" class="form-control"></div>
+        <div class="form-group"><label>Fecha Ingreso *</label><input type="date" id="f-ing" class="form-control"></div>
+      </div>
+      <div class="check-group" id="bloque-crear-usuario">
+        <input type="checkbox" id="f-crear-usuario">
+        <label for="f-crear-usuario">Crear usuario (email: nombre.apellido@cafeteria.com | contraseña: 6 últimos dígitos CI)</label>
+      </div>
+      <div class="check-group" id="bloque-activo" style="display:none">
+        <input type="checkbox" id="f-activo"><label for="f-activo">Empleado activo</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-form')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast" class="toast"></div>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  const usuarioActual = checkAuth([1]);
+  if (usuarioActual) renderUserInfo();
+
+  let _todos = [], _roles = {}, _editId = null;
+
+  async function cargar() {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">👥</span>Cargando...</td></tr>';
+    const [rP, rR] = await Promise.all([apiFetch('/personal/'), apiFetch('/rol/')]);
+    if (!rP || !rR) return;
+    _todos = await rP.json();
+    const roles = await rR.json();
+    _roles = Object.fromEntries(roles.map(r => [r.id_rol, r.nombre]));
+    // Populate rol select
+    document.getElementById('f-rol').innerHTML = roles.map(r => `<option value="${r.id_rol}">${esc(r.nombre)}</option>`).join('');
+    renderTabla(_todos);
+  }
+
+  function renderTabla(data) {
+    const tb = document.getElementById('tbody');
+    if (!data.length) { tb.innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">👥</span>Sin empleados registrados</td></tr>'; return; }
+    tb.innerHTML = data.map(p => `
+      <tr>
+        <td>${p.id_personal}</td>
+        <td><strong>${esc(p.nombres)}</strong> ${esc(p.primer_apellido)} ${esc(p.segundo_apellido||'')}</td>
+        <td>${badgeActivo(true, _roles[p.id_rol] || '—')}</td>
+        <td>${p.ci}</td><td>${p.telefono||'—'}</td>
+        <td>${badgeActivo(p.activo)}</td>
+        <td><div class="table-actions">
+          <button class="btn btn-secondary btn-icon" onclick="editar(${p.id_personal})">✏️ Editar</button>
+          <button class="btn btn-danger btn-icon" onclick="eliminar(${p.id_personal})">🗑️</button>
+        </div></td>
+      </tr>`).join('');
+  }
+
+  function badgeActivo(activo, label) {
+    if (label) return `<span class="badge badge-info">${esc(label)}</span>`;
+    return activo ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-error">Inactivo</span>';
+  }
+
+  function filtrar(q) {
+    const t = q.toLowerCase();
+    renderTabla(_todos.filter(p => (p.nombres+' '+p.primer_apellido+' '+p.ci).toLowerCase().includes(t)));
+  }
+
+  function resetForm() {
+    ['f-nombres','f-ap1','f-ap2','f-tel'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-ci').value = '';
+    document.getElementById('f-ing').value = new Date().toISOString().split('T')[0];
+    document.getElementById('f-nac').value = '';
+    document.getElementById('f-activo').checked = true;
+  }
+
+  function nuevo() {
+    _editId = null;
+    document.getElementById('modal-title').textContent = 'Nuevo empleado';
+    resetForm();
+    document.getElementById('bloque-crear-usuario').style.display = 'flex';
+    document.getElementById('bloque-activo').style.display = 'none';
+    abrirModal('modal-form');
+  }
+
+  function editar(id) {
+    const p = _todos.find(x => x.id_personal === id);
+    if (!p) return;
+    _editId = id;
+    document.getElementById('modal-title').textContent = 'Editar empleado';
+    document.getElementById('f-nombres').value = p.nombres || '';
+    document.getElementById('f-ap1').value = p.primer_apellido || '';
+    document.getElementById('f-ap2').value = p.segundo_apellido || '';
+    document.getElementById('f-ci').value = p.ci || '';
+    document.getElementById('f-tel').value = p.telefono || '';
+    document.getElementById('f-nac').value = p.fecha_nacimiento ? p.fecha_nacimiento.split('T')[0] : '';
+    document.getElementById('f-ing').value = p.fecha_ingreso ? p.fecha_ingreso.split('T')[0] : '';
+    document.getElementById('f-rol').value = p.id_rol;
+    document.getElementById('f-activo').checked = p.activo;
+    document.getElementById('bloque-crear-usuario').style.display = 'none';
+    document.getElementById('bloque-activo').style.display = 'flex';
+    abrirModal('modal-form');
+  }
+
+  async function eliminar(id) {
+    if (!confirmarEliminar('¿Eliminar este empleado del sistema?')) return;
+    const res = await apiFetch(`/personal/${id}`, { method: 'DELETE' });
+    if (!res) return;
+    if (res.ok) { mostrarToast('Empleado eliminado'); cargar(); }
+    else { const e = await res.json(); mostrarToast(e.detail || 'Error al eliminar', 'error'); }
+  }
+
+  async function guardar() {
+    const btn = document.getElementById('btn-guardar');
+    const nombres = document.getElementById('f-nombres').value.trim();
+    const primer_apellido = document.getElementById('f-ap1').value.trim();
+    const ci = parseInt(document.getElementById('f-ci').value);
+    const id_rol = parseInt(document.getElementById('f-rol').value);
+    const fecha_ingreso = document.getElementById('f-ing').value;
+    if (!nombres || !primer_apellido || !ci || !id_rol || !fecha_ingreso) { mostrarToast('Completa los campos obligatorios (*)', 'error'); return; }
+
+    btn.disabled = true;
+    const body = {
+      nombres, primer_apellido, id_rol, ci, fecha_ingreso,
+      segundo_apellido: document.getElementById('f-ap2').value.trim() || null,
+      telefono: parseInt(document.getElementById('f-tel').value) || null,
+      fecha_nacimiento: document.getElementById('f-nac').value || null,
+    };
+
+    let res;
+    if (_editId) {
+      body.activo = document.getElementById('f-activo').checked;
+      res = await apiFetch(`/personal/${_editId}`, { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      body.crear_usuario = document.getElementById('f-crear-usuario').checked;
+      res = await apiFetch('/personal/crear', { method: 'POST', body: JSON.stringify(body) });
+    }
+    btn.disabled = false;
+    if (!res) return;
+    if (res.ok) {
+      const data = await res.json();
+      let msg = _editId ? 'Empleado actualizado' : 'Empleado creado';
+      if (data.email) msg += ` | Usuario: ${data.email} / Pass: ${data.password}`;
+      mostrarToast(msg);
+      cerrarModal('modal-form');
+      cargar();
+    } else {
+      const e = await res.json();
+      mostrarToast(e.detail || 'Error al guardar', 'error');
+    }
+  }
+
+  cargar();
+</script>
+</body>
+</html>

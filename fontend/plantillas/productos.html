@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Productos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="page-wrapper">
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a href="admin.html" class="brand-link"><span>☕</span> Cafetería</a>
+    <span class="navbar-sep">›</span><span class="navbar-current">Productos</span>
+  </div>
+  <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
+</nav>
+
+<main class="main-content">
+  <div class="page-header">
+    <div><h1>Productos</h1><p>Catálogo de productos a la venta</p></div>
+    <button class="btn btn-primary" onclick="nuevo()">+ Nuevo producto</button>
+  </div>
+  <div class="table-wrapper">
+    <div class="table-toolbar">
+      <input class="table-search" type="text" placeholder="Buscar producto..." oninput="filtrar(this.value)">
+      <button class="btn btn-secondary btn-sm" onclick="cargar()">↻ Actualizar</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Nombre</th><th>Categoría</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="8" class="table-empty"><span class="empty-icon">🍕</span>Cargando...</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-form">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Nuevo producto</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-form')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre *</label><input type="text" id="f-nombre" class="form-control" placeholder="Café Americano"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label>Categoría *</label><select id="f-cat" class="form-control"></select></div>
+        <div class="form-group"><label>Estado</label><select id="f-activo" class="form-control"><option value="true">Activo</option><option value="false">Inactivo</option></select></div>
+        <div class="form-group"><label>Costo (Bs) *</label><input type="number" id="f-costo" class="form-control" step="0.01" min="0" placeholder="3.50"></div>
+        <div class="form-group"><label>Precio Venta (Bs) *</label><input type="number" id="f-precio" class="form-control" step="0.01" min="0" placeholder="8.00"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-form')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast" class="toast"></div>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  checkAuth([1]);
+  renderUserInfo();
+
+  let _todos = [], _editId = null;
+
+  async function cargar() {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="8" class="table-empty"><span class="empty-icon">🍕</span>Cargando...</td></tr>';
+    const [rP, rC] = await Promise.all([apiFetch('/producto/'), apiFetch('/categoria_producto/')]);
+    if (!rP || !rC) return;
+    _todos = await rP.json();
+    const cats = await rC.json();
+    document.getElementById('f-cat').innerHTML = cats.map(c => `<option value="${c.id_categoria}">${esc(c.nombre)}</option>`).join('');
+    renderTabla(_todos);
+  }
+
+  function renderTabla(data) {
+    const tb = document.getElementById('tbody');
+    if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="table-empty"><span class="empty-icon">🍕</span>Sin productos</td></tr>'; return; }
+    tb.innerHTML = data.map(p => {
+      const margen = p.costo > 0 ? (((p.precio_venta - p.costo) / p.costo) * 100).toFixed(0) : '—';
+      return `<tr>
+        <td>${p.id_producto}</td>
+        <td><strong>${esc(p.nombre)}</strong></td>
+        <td>${esc(p.categoria||'—')}</td>
+        <td>${formatBs(p.costo)}</td>
+        <td>${formatBs(p.precio_venta)}</td>
+        <td><span class="badge badge-info">+${margen}%</span></td>
+        <td>${badgeActivo(p.activo)}</td>
+        <td><div class="table-actions">
+          <button class="btn btn-secondary btn-icon" onclick="editar(${p.id_producto})">✏️ Editar</button>
+          <button class="btn btn-danger btn-icon" onclick="eliminar(${p.id_producto})">🗑️</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filtrar(q) {
+    const t = q.toLowerCase();
+    renderTabla(_todos.filter(p => (p.nombre||'').toLowerCase().includes(t)));
+  }
+
+  function nuevo() {
+    _editId = null;
+    document.getElementById('modal-title').textContent = 'Nuevo producto';
+    document.getElementById('f-nombre').value = '';
+    document.getElementById('f-costo').value = '';
+    document.getElementById('f-precio').value = '';
+    document.getElementById('f-activo').value = 'true';
+    abrirModal('modal-form');
+  }
+
+  function editar(id) {
+    const p = _todos.find(x => x.id_producto === id);
+    if (!p) return;
+    _editId = id;
+    document.getElementById('modal-title').textContent = 'Editar producto';
+    document.getElementById('f-nombre').value = p.nombre || '';
+    document.getElementById('f-costo').value = p.costo || '';
+    document.getElementById('f-precio').value = p.precio_venta || '';
+    document.getElementById('f-cat').value = p.id_categoria;
+    document.getElementById('f-activo').value = p.activo ? 'true' : 'false';
+    abrirModal('modal-form');
+  }
+
+  async function eliminar(id) {
+    if (!confirmarEliminar('¿Eliminar este producto?')) return;
+    const res = await apiFetch(`/producto/${id}`, { method: 'DELETE' });
+    if (!res) return;
+    if (res.ok) { mostrarToast('Producto eliminado'); cargar(); }
+    else { const e = await res.json(); mostrarToast(e.detail || 'Error', 'error'); }
+  }
+
+  async function guardar() {
+    const btn = document.getElementById('btn-guardar');
+    const nombre = document.getElementById('f-nombre').value.trim();
+    const costo = parseFloat(document.getElementById('f-costo').value);
+    const precio_venta = parseFloat(document.getElementById('f-precio').value);
+    const id_categoria = parseInt(document.getElementById('f-cat').value);
+    if (!nombre || isNaN(costo) || isNaN(precio_venta) || !id_categoria) { mostrarToast('Completa todos los campos requeridos', 'error'); return; }
+    btn.disabled = true;
+    const body = { nombre, costo, precio_venta, id_categoria, activo: document.getElementById('f-activo').value === 'true' };
+    const url = _editId ? `/producto/${_editId}` : '/producto/';
+    const method = _editId ? 'PUT' : 'POST';
+    const res = await apiFetch(url, { method, body: JSON.stringify(body) });
+    btn.disabled = false;
+    if (!res) return;
+    if (res.ok) { mostrarToast(_editId ? 'Producto actualizado' : 'Producto creado'); cerrarModal('modal-form'); cargar(); }
+    else { const e = await res.json(); mostrarToast(e.detail || 'Error', 'error'); }
+  }
+
+  cargar();
+</script>
+</body>
+</html>

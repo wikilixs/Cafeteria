@@ -1,252 +1,425 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hacer Venta</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        input, select { width: 100%; padding: 5px; }
-        button { padding: 10px 20px; margin: 10px 0; }
-        .total { font-size: 18px; font-weight: bold; margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Ventas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .cliente-nuevo-section {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-top: 8px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      animation: fadeUp 0.25s ease;
+    }
+    .cliente-nuevo-section.visible { display: flex; }
+    .cliente-nuevo-section .form-grid-2 { gap: 10px; }
+    .cliente-nuevo-section .form-group { margin-bottom: 0; }
+    .toggle-row {
+      display: flex; align-items: center; gap: 8px; margin-top: 4px;
+    }
+    .toggle-row label {
+      font-size: 0.83rem; color: var(--color-text-muted); cursor: pointer;
+      text-transform: none; letter-spacing: 0; font-weight: 400;
+    }
+    .toggle-row input[type="checkbox"] {
+      accent-color: var(--color-primary); width: 16px; height: 16px; cursor: pointer;
+    }
+    /* Modal pago */
+    .pay-confirm-body { text-align: center; padding: 8px 0; }
+    .pay-total-display {
+      font-size: 2.4rem; font-weight: 700; color: var(--color-primary);
+      margin: 12px 0 20px;
+    }
+    .pay-input-row {
+      display: flex; align-items: center; gap: 12px; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .pay-input-row input {
+      font-size: 1.6rem; font-weight: 700; width: 180px; text-align: center;
+      background: var(--color-surface-2); border: 2px solid var(--color-primary);
+      border-radius: var(--radius-sm); color: var(--color-text); padding: 10px;
+      outline: none;
+    }
+    .change-display {
+      background: var(--color-surface-2); border-radius: var(--radius-sm);
+      padding: 14px 20px; margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .change-display .change-label { color: var(--color-text-muted); font-size: .9rem; }
+    .change-display .change-amount {
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--color-success);
+    }
+    .change-display .change-amount.negative { color: var(--color-error); }
+    .pay-method-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3);
+      color: #93c5fd; padding: 4px 14px; border-radius: 20px;
+      font-size: 0.82rem; font-weight: 600; margin-bottom: 16px;
+    }
+    .section-label {
+      font-size: 0.78rem; font-weight: 600; color: var(--color-primary);
+      text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 1px solid var(--color-border); padding-bottom: 6px; margin-bottom: 0;
+    }
+  </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Hacer una Venta</h1>
-        <form id="ventaForm">
-            <label for="usuario">ID Usuario:</label>
-            <input type="number" id="usuario" value="1" required>
+<body class="page-wrapper">
 
-            <h2>Detalles de la Venta</h2>
-            <table id="detallesTable">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unitario</th>
-                        <th>Subtotal</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="detallesBody">
-                    <!-- Rows will be added here -->
-                </tbody>
-            </table>
-            <button type="button" onclick="addRow()">Agregar Producto</button>
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a href="admin.html" class="brand-link"><span>☕</span> Cafetería</a>
+    <span class="navbar-sep">›</span><span class="navbar-current">Ventas</span>
+  </div>
+  <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
+</nav>
 
-            <div class="total">
-                Total: $<span id="totalAmount">0.00</span>
-            </div>
+<main class="main-content">
+  <div class="page-header">
+    <div><h1>Registro de Ventas</h1><p>Registra y consulta las ventas del día</p></div>
+    <button class="btn btn-primary" onclick="abrirModal('modal-venta')">+ Nueva venta</button>
+  </div>
 
-            <button type="submit">Registrar Venta</button>
-        </form>
-
-        <h2>Reporte de Ventas</h2>
-        <form id="reporteForm">
-            <label for="fechaInicio">Fecha Inicio:</label>
-            <input type="date" id="fechaInicio">
-
-            <label for="fechaFin">Fecha Fin:</label>
-            <input type="date" id="fechaFin">
-
-            <label for="usuarioReporte">Usuario:</label>
-            <select id="usuarioReporte">
-                <option value="">Todos</option>
-            </select>
-
-            <button type="button" onclick="cargarReporte()">Cargar Reporte</button>
-        </form>
-
-        <table id="reporteTable" style="display: none;">
-            <thead>
-                <tr>
-                    <th>ID Venta</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                    <th>Total</th>
-                    <th>Usuario</th>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unitario</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody id="reporteBody">
-            </tbody>
-        </table>
+  <!-- Tabla ventas recientes -->
+  <div class="table-wrapper">
+    <div class="table-toolbar">
+      <span style="font-size:.85rem;color:var(--color-text-muted)">Ventas recientes (últimos 7 días)</span>
+      <button class="btn btn-secondary btn-sm" onclick="cargarVentas()" style="margin-left:auto">↻ Actualizar</button>
     </div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Fecha</th><th>Estado</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Pago</th></tr></thead>
+      <tbody id="tbody-ventas"><tr><td colspan="7" class="table-empty"><span class="empty-icon">🛒</span>Cargando...</td></tr></tbody>
+    </table>
+  </div>
+</main>
 
-    <script>
-        const API_BASE = 'http://localhost:8000';
+<!-- Modal Nueva Venta -->
+<div class="modal-overlay" id="modal-venta">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>Nueva Venta</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-venta')">✕</button>
+    </div>
+    <div class="modal-body">
 
-        async function loadProductos() {
-            try {
-                const response = await fetch(`${API_BASE}/producto/`);
-                window.productos = await response.json();
-            } catch (error) {
-                console.error('Error loading productos:', error);
-            }
-        }
+      <!-- Sección cliente -->
+      <p class="section-label">Cliente</p>
+      <div class="form-grid-2" style="margin-top:10px">
+        <div class="form-group" id="bloque-sel-cliente">
+          <label>Cliente existente</label>
+          <select id="f-cliente" class="form-control"><option value="">Cliente general (sin nombre)</option></select>
+        </div>
+        <div class="form-group">
+          <label>Método de Pago</label>
+          <select id="f-pago" class="form-control" onchange="onPagoChange()">
+            <option value="EFECTIVO">💵 Efectivo</option>
+            <option value="TARJETA">💳 Tarjeta</option>
+            <option value="TRANSFERENCIA">📲 Transferencia</option>
+          </select>
+        </div>
+      </div>
 
-        async function loadUsuarios() {
-            try {
-                const response = await fetch(`${API_BASE}/usuario/`);
-                const usuarios = await response.json();
-                const select = document.getElementById('usuarioReporte');
-                select.innerHTML = '<option value="">Todos</option>';
-                usuarios.forEach(u => {
-                    select.innerHTML += `<option value="${u.id_usuario}">${u.nombre}</option>`;
-                });
-            } catch (error) {
-                console.error('Error loading usuarios:', error);
-            }
-        }
+      <!-- Toggle crear cliente nuevo -->
+      <div class="toggle-row">
+        <input type="checkbox" id="chk-nuevo-cli" onchange="toggleNuevoCli(this)">
+        <label for="chk-nuevo-cli">✚ El cliente no existe — ingresar datos nuevos</label>
+      </div>
 
-        function addRow() {
-            const tbody = document.getElementById('detallesBody');
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <select class="producto" required onchange="updateSubtotal(this)">
-                        <option value="">Seleccionar Producto</option>
-                        ${window.productos.map(p => `<option value="${p.id_producto}" data-price="${p.precio}">${p.nombre}</option>`).join('')}
-                    </select>
-                </td>
-                <td><input type="number" class="cantidad" step="1" min="1" value="1" required onchange="updateSubtotal(this)"></td>
-                <td><input type="number" class="precio" step="0.01" readonly></td>
-                <td><span class="subtotal">0.00</span></td>
-                <td><button type="button" onclick="removeRow(this)">Eliminar</button></td>
-            `;
-            tbody.appendChild(row);
-            updateSubtotal(row.querySelector('.cantidad'));
-        }
+      <div class="cliente-nuevo-section" id="nuevo-cli-form">
+        <p class="section-label">Datos del nuevo cliente</p>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Nombre completo *</label>
+            <input type="text" id="nc-nombre" class="form-control" placeholder="Juan Pérez">
+          </div>
+          <div class="form-group">
+            <label>NIT / CI (para factura)</label>
+            <input type="text" id="nc-nit" class="form-control" placeholder="12345678">
+          </div>
+        </div>
+      </div>
 
-        function updateSubtotal(element) {
-            const row = element.closest('tr');
-            const productoSelect = row.querySelector('.producto');
-            const cantidadInput = row.querySelector('.cantidad');
-            const precioInput = row.querySelector('.precio');
-            const subtotalSpan = row.querySelector('.subtotal');
+      <!-- Productos -->
+      <h4 style="margin:20px 0 10px;font-size:.9rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.5px">Productos</h4>
+      <div style="background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-sm);overflow:hidden">
+        <table class="cart-table">
+          <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Unit.</th><th>Subtotal</th><th></th></tr></thead>
+          <tbody id="cart-body"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="agregarFila()" style="margin-top:10px">+ Agregar producto</button>
 
-            const selectedOption = productoSelect.options[productoSelect.selectedIndex];
-            const precio = parseFloat(selectedOption.getAttribute('data-price')) || 0;
-            const cantidad = parseFloat(cantidadInput.value) || 0;
+      <div class="cart-total">Total: <span class="total-amount" id="total-amount">Bs 0.00</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-venta')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-registrar" onclick="abrirPago()">💳 Proceder al pago</button>
+    </div>
+  </div>
+</div>
 
-            precioInput.value = precio.toFixed(2);
-            const subtotal = precio * cantidad;
-            subtotalSpan.textContent = subtotal.toFixed(2);
+<!-- Modal Confirmación de Pago -->
+<div class="modal-overlay" id="modal-pago">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Confirmar Pago</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-pago')">✕</button>
+    </div>
+    <div class="modal-body pay-confirm-body">
+      <p style="color:var(--color-text-muted);font-size:.9rem">Total a cobrar</p>
+      <div class="pay-total-display" id="pay-total-display">Bs 0.00</div>
+      <div class="pay-method-badge" id="pay-method-badge">💵 Efectivo</div>
 
-            updateTotal();
-        }
+      <!-- Input monto (solo efectivo) -->
+      <div id="efectivo-section">
+        <p style="color:var(--color-text-muted);font-size:.88rem;margin-bottom:10px">Monto recibido del cliente (Bs)</p>
+        <div class="pay-input-row">
+          <input type="number" id="monto-recibido" min="0" step="0.01" placeholder="0.00" oninput="calcVuelto()">
+        </div>
+        <div class="change-display">
+          <span class="change-label">Vuelto a entregar</span>
+          <span class="change-amount" id="vuelto-display">Bs 0.00</span>
+        </div>
+      </div>
 
-        function updateTotal() {
-            let total = 0;
-            document.querySelectorAll('#detallesBody tr').forEach(row => {
-                const subtotal = parseFloat(row.querySelector('.subtotal').textContent) || 0;
-                total += subtotal;
-            });
-            document.getElementById('totalAmount').textContent = total.toFixed(2);
-        }
+      <!-- Mensaje para tarjeta/transferencia -->
+      <div id="digital-section" style="display:none">
+        <p style="color:var(--color-text-muted);margin-bottom:16px;font-size:.9rem">
+          Confirma que el pago digital fue recibido correctamente antes de registrar la venta.
+        </p>
+        <div class="change-display" style="justify-content:center">
+          <span style="color:var(--color-success);font-size:1.1rem;font-weight:600">✔ Monto: <span id="digital-monto">Bs 0.00</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-pago')">← Volver</button>
+      <button class="btn btn-primary" id="btn-confirmar-pago" onclick="registrarVenta()" disabled>✓ Confirmar y Registrar</button>
+    </div>
+  </div>
+</div>
 
-        function removeRow(button) {
-            button.closest('tr').remove();
-            updateTotal();
-        }
+<div id="app-toast" class="toast"></div>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  const usuarioActual = checkAuth([1, 2]);
+  if (usuarioActual) renderUserInfo();
 
-        document.getElementById('ventaForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id_usuario = document.getElementById('usuario').value;
-            const rows = document.querySelectorAll('#detallesBody tr');
-            const detalles = [];
+  let _productos = [], _clientes = [], _totalVenta = 0;
 
-            rows.forEach(row => {
-                const producto = row.querySelector('.producto').value;
-                const cantidad = row.querySelector('.cantidad').value;
-                const precio = row.querySelector('.precio').value;
-                if (producto && cantidad && precio) {
-                    detalles.push({
-                        id_producto: parseInt(producto),
-                        cantidad: parseInt(cantidad),
-                        precio_unitario: parseFloat(precio)
-                    });
-                }
-            });
+  async function init() {
+    const [rP, rC] = await Promise.all([apiFetch('/producto/'), apiFetch('/cliente/')]);
+    if (rP) _productos = (await rP.json()).filter(p => p.activo !== false);
+    if (rC) {
+      _clientes = await rC.json();
+      poblarSelectCliente();
+    }
+    cargarVentas();
+  }
 
-            if (detalles.length === 0) {
-                alert('Agregue al menos un producto');
-                return;
-            }
+  function poblarSelectCliente() {
+    const sel = document.getElementById('f-cliente');
+    sel.innerHTML = '<option value="">Cliente general (sin nombre)</option>';
+    _clientes.forEach(c => sel.innerHTML += `<option value="${c.id_cliente}">${esc(c.nombre)}${c.nit ? ' — NIT '+esc(c.nit) : ''}</option>`);
+  }
 
-            try {
-                const response = await fetch(`${API_BASE}/venta/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id_usuario: parseInt(id_usuario),
-                        detalles
-                    })
-                });
-                const result = await response.json();
-                if (response.ok) {
-                    alert(`Venta registrada con ID: ${result.id_venta}, Total: $${result.total}`);
-                    location.reload();
-                } else {
-                    alert('Error: ' + result.detail);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al registrar la venta');
-            }
-        });
+  function toggleNuevoCli(chk) {
+    const panel = document.getElementById('nuevo-cli-form');
+    const selBloque = document.getElementById('bloque-sel-cliente');
+    if (chk.checked) {
+      panel.classList.add('visible');
+      selBloque.style.opacity = '0.35';
+      selBloque.querySelector('select').disabled = true;
+    } else {
+      panel.classList.remove('visible');
+      selBloque.style.opacity = '1';
+      selBloque.querySelector('select').disabled = false;
+    }
+  }
 
-        window.onload = () => {
-            loadProductos();
-            loadUsuarios();
-        };
+  async function cargarVentas() {
+    document.getElementById('tbody-ventas').innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">🛒</span>Cargando...</td></tr>';
+    const hoy = new Date();
+    const hace7 = new Date(); hace7.setDate(hace7.getDate() - 7);
+    const url = `/venta/reporte/detallado?fecha_inicio=${hace7.toISOString().split('T')[0]}&fecha_fin=${hoy.toISOString().split('T')[0]}`;
+    const res = await apiFetch(url);
+    if (!res) return;
+    const data = await res.json();
+    const ventaMap = {};
+    data.forEach(r => {
+      if (!ventaMap[r.id_venta]) ventaMap[r.id_venta] = { ...r, productos: [] };
+      if (r.producto) ventaMap[r.id_venta].productos.push(`${r.producto} x${r.cantidad}`);
+    });
+    const ventas = Object.values(ventaMap).sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 50);
+    const tb = document.getElementById('tbody-ventas');
+    if (!ventas.length) { tb.innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">🛒</span>Sin ventas en los últimos 7 días</td></tr>'; return; }
+    tb.innerHTML = ventas.map(v => `
+      <tr>
+        <td>${v.id_venta}</td>
+        <td>${formatFecha(v.fecha)}</td>
+        <td><span class="badge ${v.estado==='COMPLETADA'?'badge-success':v.estado==='CANCELADA'?'badge-error':'badge-warning'}">${esc(v.estado||'—')}</span></td>
+        <td>${esc(v.cliente||'General')}</td>
+        <td style="max-width:200px;font-size:.82rem">${v.productos.join(', ')||'—'}</td>
+        <td><strong>${formatBs(v.total)}</strong></td>
+        <td>${esc(v.metodo_pago||'—')}</td>
+      </tr>`).join('');
+  }
 
-        async function cargarReporte() {
-            const fechaInicio = document.getElementById('fechaInicio').value;
-            const fechaFin = document.getElementById('fechaFin').value;
-            const idUsuario = document.getElementById('usuarioReporte').value;
+  function agregarFila() {
+    const tbody = document.getElementById('cart-body');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><select class="prod-sel" onchange="actualizarFila(this)">
+        <option value="">— Seleccionar —</option>
+        ${_productos.map(p => `<option value="${p.id_producto}" data-precio="${p.precio_venta}">${esc(p.nombre)} (${formatBs(p.precio_venta)})</option>`).join('')}
+      </select></td>
+      <td><input type="number" class="cant" value="1" min="1" step="1" onchange="actualizarFila(this)"></td>
+      <td class="precio-cell">Bs 0.00</td>
+      <td class="sub-cell">Bs 0.00</td>
+      <td><button class="btn btn-danger btn-icon" onclick="this.closest('tr').remove();calcTotal()">✕</button></td>`;
+    tbody.appendChild(row);
+  }
 
-            let url = `${API_BASE}/venta/reporte?`;
-            if (fechaInicio) url += `fecha_inicio=${fechaInicio}&`;
-            if (fechaFin) url += `fecha_fin=${fechaFin}&`;
-            if (idUsuario) url += `id_usuario=${idUsuario}&`;
+  function actualizarFila(el) {
+    const row = el.closest('tr');
+    const sel = row.querySelector('.prod-sel');
+    const opt = sel.options[sel.selectedIndex];
+    const precio = parseFloat(opt.getAttribute('data-precio')) || 0;
+    const cant = parseInt(row.querySelector('.cant').value) || 1;
+    row.querySelector('.precio-cell').textContent = formatBs(precio);
+    row.querySelector('.sub-cell').textContent = formatBs(precio * cant);
+    calcTotal();
+  }
 
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                const tbody = document.getElementById('reporteBody');
-                tbody.innerHTML = '';
+  function calcTotal() {
+    let total = 0;
+    document.querySelectorAll('#cart-body .sub-cell').forEach(td => {
+      total += parseFloat(td.textContent.replace('Bs ', '')) || 0;
+    });
+    _totalVenta = total;
+    document.getElementById('total-amount').textContent = formatBs(total);
+  }
 
-                data.forEach(item => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${item.id_venta}</td>
-                        <td>${item.fecha}</td>
-                        <td>${item.estado}</td>
-                        <td>${item.total}</td>
-                        <td>${item.usuario}</td>
-                        <td>${item.producto}</td>
-                        <td>${item.cantidad}</td>
-                        <td>${item.precio_unitario}</td>
-                        <td>${item.subtotal}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
+  function onPagoChange() {
+    // no hace nada hasta abrir modal pago
+  }
 
-                document.getElementById('reporteTable').style.display = 'table';
-            } catch (error) {
-                console.error('Error cargando reporte:', error);
-                alert('Error al cargar el reporte');
-            }
-        }
-    </script>
+  function abrirPago() {
+    const filas = [...document.querySelectorAll('#cart-body tr')];
+    const hayProductos = filas.some(row => row.querySelector('.prod-sel')?.value);
+    if (!hayProductos) { mostrarToast('Agrega al menos un producto', 'error'); return; }
+    if (_totalVenta <= 0) { mostrarToast('El total debe ser mayor a Bs 0', 'error'); return; }
+
+    const metodo = document.getElementById('f-pago').value;
+    const icons = { EFECTIVO: '💵', TARJETA: '💳', TRANSFERENCIA: '📲' };
+    const labels = { EFECTIVO: 'Efectivo', TARJETA: 'Tarjeta', TRANSFERENCIA: 'Transferencia' };
+    document.getElementById('pay-total-display').textContent = formatBs(_totalVenta);
+    document.getElementById('pay-method-badge').textContent = `${icons[metodo] || '💰'} ${labels[metodo] || metodo}`;
+    document.getElementById('digital-monto').textContent = formatBs(_totalVenta);
+
+    const esEfectivo = metodo === 'EFECTIVO';
+    document.getElementById('efectivo-section').style.display = esEfectivo ? '' : 'none';
+    document.getElementById('digital-section').style.display = esEfectivo ? 'none' : '';
+
+    const btnConf = document.getElementById('btn-confirmar-pago');
+    if (esEfectivo) {
+      document.getElementById('monto-recibido').value = '';
+      document.getElementById('vuelto-display').textContent = 'Bs 0.00';
+      document.getElementById('vuelto-display').className = 'change-amount';
+      btnConf.disabled = true;
+    } else {
+      btnConf.disabled = false;
+    }
+
+    abrirModal('modal-pago');
+  }
+
+  function calcVuelto() {
+    const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
+    const vuelto = recibido - _totalVenta;
+    const el = document.getElementById('vuelto-display');
+    el.textContent = formatBs(Math.abs(vuelto));
+    el.className = vuelto >= 0 ? 'change-amount' : 'change-amount negative';
+    document.getElementById('btn-confirmar-pago').disabled = recibido < _totalVenta;
+  }
+
+  async function registrarVenta() {
+    const btn = document.getElementById('btn-confirmar-pago');
+    btn.disabled = true;
+    btn.textContent = 'Registrando...';
+
+    const filas = [...document.querySelectorAll('#cart-body tr')];
+    const detalles = [];
+    for (const row of filas) {
+      const id_producto = parseInt(row.querySelector('.prod-sel').value);
+      const cantidad = parseInt(row.querySelector('.cant').value);
+      const precio_unitario = parseFloat(row.querySelector('.precio-cell').textContent.replace('Bs ',''));
+      if (id_producto && cantidad > 0) detalles.push({ id_producto, cantidad, precio_unitario });
+    }
+
+    const metodo_pago = document.getElementById('f-pago').value;
+    const crearNuevoCli = document.getElementById('chk-nuevo-cli').checked;
+    let id_cliente = parseInt(document.getElementById('f-cliente').value) || null;
+    let nombre_cliente = null, nit_cliente = null;
+
+    if (crearNuevoCli) {
+      nombre_cliente = document.getElementById('nc-nombre').value.trim();
+      nit_cliente = document.getElementById('nc-nit').value.trim() || null;
+      if (!nombre_cliente) {
+        mostrarToast('El nombre del cliente es requerido', 'error');
+        btn.disabled = false; btn.textContent = '✓ Confirmar y Registrar';
+        return;
+      }
+      id_cliente = null; // backend creará el cliente
+    }
+
+    const body = {
+      id_usuario: usuarioActual.id_usuario,
+      id_cliente,
+      nombre_cliente,
+      nit_cliente,
+      id_estado: 1,
+      metodo_pago,
+      detalles
+    };
+
+    const res = await apiFetch('/venta/', { method: 'POST', body: JSON.stringify(body) });
+    btn.textContent = '✓ Confirmar y Registrar';
+    btn.disabled = false;
+    if (!res) return;
+    if (res.ok) {
+      const data = await res.json();
+      mostrarToast(`✅ Venta #${data.id_venta} registrada — Total: ${formatBs(data.total)}`);
+      cerrarModal('modal-pago');
+      cerrarModal('modal-venta');
+      // Limpiar
+      document.getElementById('cart-body').innerHTML = '';
+      document.getElementById('chk-nuevo-cli').checked = false;
+      toggleNuevoCli({ checked: false });
+      ['nc-nombre','nc-nit'].forEach(id => document.getElementById(id).value = '');
+      calcTotal();
+      // Si se creó un cliente, actualizarlo en el select
+      if (crearNuevoCli && data.id_cliente) {
+        _clientes.push({ id_cliente: data.id_cliente, nombre: nombre_cliente, nit: nit_cliente });
+        poblarSelectCliente();
+      }
+      cargarVentas();
+    } else {
+      const e = await res.json().catch(() => ({}));
+      mostrarToast(e.detail || 'Error al registrar venta', 'error');
+    }
+  }
+
+  init();
+</script>
 </body>
 </html>

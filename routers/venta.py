@@ -18,6 +18,11 @@ class VentaRespuesta(BaseModel):
     id_estado: int
     metodo_pago: str
     fecha: date
+    cliente: Optional[str] = None
+    estado: Optional[str] = None
+    producto: Optional[str] = None
+    cantidad: Optional[int] = None
+    total: Optional[float] = None
     
 class VentaCreate(BaseModel):
     id_usuario: int
@@ -52,6 +57,59 @@ async def listar(conn=Depends(get_conexion)):
     except Exception as e:
         print(f"Error listando ventas: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+
+@router.get("/reporte/detallado")
+async def reporte_ventas(fecha_inicio: Optional[str] = None, fecha_fin: Optional[str] = None, id_usuario: Optional[int] = None, conn=Depends(get_conexion)):
+    """
+    Reporte de ventas con detalle de productos.
+    Parámetros opcionales:
+    - fecha_inicio: YYYY-MM-DD
+    - fecha_fin: YYYY-MM-DD
+    - id_usuario: filtrar por usuario
+    """
+    try:
+        filtros = []
+        params = []
+        
+        if fecha_inicio and fecha_fin:
+            filtros.append("v.fecha >= DATE(%s) AND v.fecha <= DATE(%s)")
+            params.extend([fecha_inicio, fecha_fin])
+        
+        if id_usuario:
+            filtros.append("v.id_usuario = %s")
+            params.append(id_usuario)
+        
+        where_clause = "WHERE " + " AND ".join(filtros) if filtros else ""
+        
+        consulta = f"""
+            SELECT 
+                v.id_venta,
+                v.fecha,
+                v.metodo_pago,
+                c.nombre as cliente,
+                ev.nombre as estado,
+                pe.email as usuario,
+                p.nombre as producto,
+                dv.cantidad,
+                dv.precio_unitario,
+                (dv.cantidad * dv.precio_unitario) as subtotal,
+                SUM(dv.cantidad * dv.precio_unitario) OVER (PARTITION BY v.id_venta) as total
+            FROM venta v
+            LEFT JOIN cliente c ON v.id_cliente = c.id_cliente
+            LEFT JOIN estado_venta ev ON v.id_estado = ev.id_estado
+            LEFT JOIN usuario pe ON v.id_usuario = pe.id_usuario
+            LEFT JOIN detalle_venta dv ON v.id_venta = dv.id_venta
+            LEFT JOIN producto p ON dv.id_producto = p.id_producto
+            {where_clause}
+            ORDER BY v.id_venta DESC, dv.id_detalle_venta
+        """
+        
+        async with conn.cursor() as cursor:
+            await cursor.execute(consulta, params)
+            return await cursor.fetchall()
+    except Exception as e:
+        print(f"Error en reporte de ventas: {e}")
+        raise HTTPException(status_code=400, detail="Error al generar reporte")
     
 @router.get("/{id_venta}")
 async def obtener(id_venta: int, conn=Depends(get_conexion)):

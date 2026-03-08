@@ -27,8 +27,16 @@ class ProductoInsert(BaseModel):
 async def listar(conn=Depends(get_conexion)):
 
     consulta = """
-        SELECT * 
-        FROM producto;
+        SELECT 
+            p.id_producto,
+            p.id_categoria,
+            p.nombre,
+            p.costo,
+            p.precio_venta,
+            p.activo,
+            c.nombre as categoria
+        FROM producto p
+        LEFT JOIN categoria_producto c ON p.id_categoria = c.id_categoria;
     """
 
     try:
@@ -92,8 +100,8 @@ async def crear_producto(producto: ProductoInsert, conn=Depends(get_conexion)):
                 )
             )
 
-
             resultado = await cursor.fetchone()
+            await conn.commit()
             return resultado
 
     except Exception as e:
