@@ -2,9 +2,10 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from config.conexionDB import pool, get_conexion, app
+from services.creacion_empleado import crear_usuario_para_empleado
 from datetime import date
 
-
+    
 router = APIRouter()
 
 from typing import Optional
@@ -23,6 +24,9 @@ class UsuarioCreate(BaseModel):
     email:       str
     password:    str
     activo:      bool | None = True
+
+class UsuarioCreateAuto(BaseModel):
+    id_personal: int
 
 
 @router.get("/")
@@ -59,7 +63,7 @@ async def obtener(id_usuario: int, conn=Depends(get_conexion)):
 @router.post("/")
 async def crear(usuario: UsuarioCreate, conn=Depends(get_conexion)):
     consulta = """
-        INSERT INTO usuario (id_personal, email, password, activo)
+        INSERT INTO usuario (id_personal, email, password_hash, activo)
         VALUES (%s, %s, %s, %s) RETURNING id_usuario;
     """
     try:
@@ -72,11 +76,27 @@ async def crear(usuario: UsuarioCreate, conn=Depends(get_conexion)):
         print(f"Error al crear usuario en Psycopg: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
 
+
+@router.post("/crear")
+async def crear_usuario_autogenerado(data: UsuarioCreateAuto, conn=Depends(get_conexion)):
+    """
+    Crea un usuario autogenerando email y contraseña (últimos 6 dígitos del CI).
+    Body: {"id_personal": 1}
+    """
+    try:
+        resultado = await crear_usuario_para_empleado(conn, data.id_personal)
+        return resultado
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error al crear usuario: {e}")
+        raise HTTPException(status_code=500, detail="Error al crear usuario")
+
 @router.put("/{id_usuario}")
 async def actualizar(id_usuario: int, usuario: UsuarioCreate, conn=Depends(get_conexion)):
     consulta = """
         UPDATE usuario
-        SET id_personal = %s, email = %s, password = %s, activo = %s
+        SET id_personal = %s, email = %s, password_hash = %s, activo = %s
         WHERE id_usuario = %s;
     """
     try:

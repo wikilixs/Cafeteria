@@ -1,0 +1,274 @@
+2026-03-08 00:11:38 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:38 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:38 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:38 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:39 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:39 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:39 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:39 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:41 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:41 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:41 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:42 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:45 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:45 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:46 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:46 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:53 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:53 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:54 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:11:54 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:03 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:03 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:03 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:03 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:04 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:04 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:04 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:04 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:06 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:06 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:06 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:06 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:15 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:15 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:15 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:15 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:16 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:16 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:16 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:16 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:18 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:18 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:18 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:18 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:21 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:22 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:22 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:12:23 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:06 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:06 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:06 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:06 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:07 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:07 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:07 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:07 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:09 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:09 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:10 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 00:14:10 | WARNING  | psycopg.pool | error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL:  no existe la base de datos «cafeteria2»
+2026-03-08 01:08:08 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 01:19:18 | ERROR    | services.creacion_empleado | Error: llave duplicada viola restricción de unicidad «personal_ci_key»
+DETAIL:  Ya existe la llave (ci)=(1234567890).
+2026-03-08 01:19:32 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 01:19:43 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 01:20:00 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 01:23:19 | ERROR    | services.compra_service | Error: inserción o actualización en la tabla «compra» viola la llave foránea «compra_id_usuario_fkey»
+DETAIL:  La llave (id_usuario)=(1) no está presente en la tabla «usuario».
+2026-03-08 01:24:00 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 01:24:27 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 01:24:34 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 10:26:42 | ERROR    | services.creacion_empleado | Error: llave duplicada viola restricción de unicidad «personal_ci_key»
+DETAIL:  Ya existe la llave (ci)=(1234567890).
+2026-03-08 10:26:56 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 10:31:08 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 10:32:57 | ERROR    | services.compra_service | Error: 0
+2026-03-08 10:45:12 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 10:45:21 | WARNING  | middlewares.errors | Validation error en http://localhost:8000/personal/crear: [{'type': 'json_invalid', 'loc': ('body', 227), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Expecting value'}}]
+2026-03-08 10:46:11 | ERROR    | services.creacion_empleado | Error: 0
+2026-03-08 10:47:08 | ERROR    | services.compra_service | Error: 0
+2026-03-08 10:47:50 | ERROR    | services.venta_service | Error al registrar venta: 0
+2026-03-08 11:03:05 | INFO     | services.compra_service | Insumo nuevo creado: 'Harina' (id=1)
+2026-03-08 11:03:49 | INFO     | services.compra_service | Insumo nuevo creado: 'Azúcar' (id=2)
+2026-03-08 11:04:37 | ERROR    | services.venta_service | Error al registrar venta: inserción o actualización en la tabla «detalle_venta» viola la llave foránea «detalle_venta_id_producto_fkey»
+DETAIL:  La llave (id_producto)=(1) no está presente en la tabla «producto».
+Traceback (most recent call last):
+  File "/home/wikilixs/Proyectos/Cafeteria/cafeteria/services/venta_service.py", line 77, in registrar_venta
+    await cur.execute(
+    ...<5 lines>...
+    )
+  File "/home/wikilixs/Proyectos/Cafeteria/cafeteria/.venv/lib/python3.13/site-packages/psycopg/cursor_async.py", line 117, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.ForeignKeyViolation: inserción o actualización en la tabla «detalle_venta» viola la llave foránea «detalle_venta_id_producto_fkey»
+DETAIL:  La llave (id_producto)=(1) no está presente en la tabla «producto».

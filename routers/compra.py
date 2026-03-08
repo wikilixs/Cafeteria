@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from config.conexionDB import pool, get_conexion, app
-from services.compra_service import registrar_compra, obtener_reporte_compras
+from services.compra_service import registrar_compra
 from typing import List, Optional
 
 router = APIRouter()
@@ -19,6 +19,17 @@ class CompraCreate(BaseModel):
     id_usuario: int
     fecha: str
     observacion: str | None = None
+
+class DetalleCompra(BaseModel):
+    nombre: str                    # Nombre del insumo (se crea si no existe)
+    unidad: Optional[str] = None   # Requerido solo si el insumo es nuevo (g, kg, ml, l, unidad...)
+    cantidad: float
+    costo_unitario: float
+
+class CompraRegistro(BaseModel):
+    id_proveedor: Optional[int] = None
+    id_usuario: int
+    detalles: List[DetalleCompra]
 
 @router.get("/")
 async def listar_compras(conn=Depends(get_conexion)):
@@ -51,13 +62,26 @@ async def obtener_compra(id_compra: int, conn=Depends(get_conexion)):
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
     
 @router.post("/")
-async def crear_compra(compra: CompraCreate, conn=Depends(get_conexion)):
+async def crear_compra(compra: CompraRegistro, conn=Depends(get_conexion)):
+    """
+    Registra una compra con detalles de insumos.
+    Body: {
+      "id_proveedor": 1,
+      "id_usuario": 1,
+      "detalles": [
+        {"id_insumo": 1, "cantidad": 10, "costo_unitario": 5.50}
+      ]
+    }
+    """
     try:
-        compra_id = await registrar_compra(conn, compra)
-        return {"id_compra": compra_id, **compra.dict()}
+        detalles_dict = [d.dict() for d in compra.detalles]
+        resultado = await registrar_compra(conn, compra.id_proveedor, compra.id_usuario, detalles_dict)
+        return resultado
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error al registrar compra: {e}")
-        raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
+        raise HTTPException(status_code=500, detail="Ocurrió un error, consulte con su Administrador")
     
 @router.put("/{id_compra}")
 async def actualizar_compra(id_compra: int, compra: CompraCreate, conn=Depends(get_conexion)):

@@ -1,127 +1,148 @@
 import logging
-from decimal import Decimal
 from fastapi import HTTPException
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
-async def registrar_compra(conn, id_proveedor: int | None, id_usuario: int, detalles: list[dict]) -> dict:
+async def _obtener_o_crear_insumo(cur, nombre, unidad, cantidad):
     """
-    Registra una compra completa y calcula el total automáticamente.
+    Busca un insumo por nombre.
+    - Si existe: retorna su id_insumo (el stock se actualiza después).
+    - Si no existe: lo crea con stock=0 y activo=True, retorna el nuevo id_insumo.
+    La unidad es obligatoria solo cuando se crea; si el insumo ya existe se ignora.
+    """
+    await cur.execute(
+        "SELECT id_insumo FROM insumo WHERE nombre = %s",
+        (nombre,)
+    )
+    row = await cur.fetchone()
+    if row:
+        return row["id_insumo"]
 
-    detalles: lista de dicts con keys:
-        id_insumo, cantidad, costo_unitario, fecha_vencimiento (opcional)
+    # Insumo nuevo: se crea con stock=0, la compra le sumará el stock a continuación
+    if not unidad:
+        raise HTTPException(
+            status_code=400,
+            detail=f"El insumo '{nombre}' no existe. Debes indicar 'unidad' para crearlo."
+        )
+
+    await cur.execute(
+        """
+        INSERT INTO insumo (nombre, unidad, stock, activo)
+        VALUES (%s, %s, 0, TRUE)
+        RETURNING id_insumo
+        """,
+        (nombre, unidad)
+    )
+    nuevo = await cur.fetchone()
+    logger.info(f"Insumo nuevo creado: '{nombre}' (id={nuevo['id_insumo']})")
+    return nuevo["id_insumo"]
+
+
+async def registrar_compra(conn, id_proveedor, id_usuario, detalles):
+    """
+    Registra una compra con detalles de insumos y actualiza el stock.
+
+    Cada detalle debe tener:
+      - nombre        : nombre del insumo (se crea automáticamente si no existe)
+      - cantidad      : cantidad comprada
+      - costo_unitario: costo por unidad
+      - unidad        : unidad de medida (requerida solo si el insumo es nuevo)
+
+    Secuencia requerida antes de llamar:
+      1. Crear rol → personal → usuario  (POST /personal/crear con crear_usuario: true)
+      2. Crear proveedor (opcional)       (POST /proveedor/)
+      3. Llamar este endpoint — los insumos se crean automáticamente
     """
     if not detalles:
-        raise HTTPException(status_code=400, detail="La compra debe tener al menos un detalle")
+        raise HTTPException(status_code=400, detail="Detalles requeridos")
 
     try:
-        async with conn.cursor() as cur:
+        cur = conn.cursor()
 
-            # 1. Calcular total
-            total = sum(
-                Decimal(str(d["cantidad"])) * Decimal(str(d["costo_unitario"]))
-                for d in detalles
+        # Validar usuario
+        await cur.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
+        if not await cur.fetchone():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Usuario con id {id_usuario} no encontrado. "
+                       f"Crea el empleado primero con POST /personal/crear (crear_usuario: true)."
             )
-            logger.info(f"Registrando compra — total calculado: {total}")
 
-            # 2. Insertar compra
+        # Validar proveedor (si se especificó)
+        if id_proveedor is not None:
+            await cur.execute(
+                "SELECT id_proveedor FROM proveedor WHERE id_proveedor = %s AND activo = TRUE",
+                (id_proveedor,)
+            )
+            if not await cur.fetchone():
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Proveedor con id {id_proveedor} no encontrado o inactivo. "
+                           f"Créalo con POST /proveedor/ o usa null para omitirlo."
+                )
+
+        # 1. Insertar cabecera de compra
+        await cur.execute(
+            """
+            INSERT INTO compra (id_proveedor, id_usuario, fecha)
+            VALUES (%s, %s, NOW())
+            RETURNING id_compra
+            """,
+            (id_proveedor, id_usuario)
+        )
+        row = await cur.fetchone()
+        id_compra = row["id_compra"]
+
+        insumos_afectados = []
+
+        # 2. Procesar cada detalle
+        for d in detalles:
+            nombre = d["nombre"]
+            cantidad = d["cantidad"]
+            costo_unitario = d["costo_unitario"]
+            unidad = d.get("unidad")
+
+            # Resolver insumo (crear si no existe)
+            id_insumo = await _obtener_o_crear_insumo(cur, nombre, unidad, cantidad)
+
+            # Insertar detalle de compra
             await cur.execute(
                 """
-                INSERT INTO compra (id_proveedor, id_usuario, estado)
-                VALUES (%s, %s, 'CONFIRMADA')
-                RETURNING id_compra
+                INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, costo_unitario)
+                VALUES (%s, %s, %s, %s)
                 """,
-                (id_proveedor, id_usuario)
+                (id_compra, id_insumo, cantidad, costo_unitario)
             )
-            id_compra_result = await cur.fetchone()
-            id_compra = id_compra_result['id_compra']
 
-            # 3. Insertar detalles
-            for d in detalles:
-                cantidad = Decimal(str(d["cantidad"]))
-                await cur.execute(
-                    """
-                    INSERT INTO detalle_compra
-                        (id_compra, id_insumo, cantidad, costo_unitario)
-                    VALUES (%s, %s, %s, %s)
-                    """,
-                    (
-                        id_compra,
-                        d["id_insumo"],
-                        cantidad,
-                        Decimal(str(d["costo_unitario"]))
-                    )
-                )
+            # Actualizar stock del insumo
+            await cur.execute(
+                """
+                UPDATE insumo SET stock = stock + %s WHERE id_insumo = %s
+                RETURNING id_insumo, nombre, unidad, stock
+                """,
+                (cantidad, id_insumo)
+            )
+            insumo_actualizado = await cur.fetchone()
+            insumos_afectados.append({
+                "id_insumo": insumo_actualizado["id_insumo"],
+                "nombre": insumo_actualizado["nombre"],
+                "unidad": insumo_actualizado["unidad"],
+                "stock_actual": float(insumo_actualizado["stock"]),
+                "cantidad_comprada": float(cantidad),
+                "costo_unitario": float(costo_unitario),
+            })
 
-            # 4. Registrar movimiento inventario
-            for d in detalles:
-                await cur.execute(
-                    """
-                    INSERT INTO movimiento_inventario (tipo, id_insumo, cantidad, signo, referencia_tabla, referencia_id, id_usuario)
-                    VALUES ('COMPRA', %s, %s, 1, 'compra', %s, %s)
-                    """,
-                    (d["id_insumo"], Decimal(str(d["cantidad"])), id_compra, id_usuario)
-                )
-
-            await conn.commit()
-            logger.info(f"Compra {id_compra} registrada correctamente")
-            return {"id_compra": id_compra, "total": total}
+        await conn.commit()
+        return {
+            "id_compra": id_compra,
+            "insumos": insumos_afectados
+        }
 
     except HTTPException:
         await conn.rollback()
         raise
     except Exception as e:
         await conn.rollback()
-        logger.error(f"Error registrando compra: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Error al registrar la compra")
-
-
-async def obtener_reporte_compras(conn, fecha_inicio: Optional[str] = None, fecha_fin: Optional[str] = None, id_proveedor: Optional[int] = None) -> list[dict]:
-    """
-    Obtiene un reporte de compras con detalles, opcionalmente filtrado por fechas y proveedor.
-    """
-    consulta = """
-        SELECT 
-            c.id_compra,
-            c.fecha,
-            c.estado,
-            c.observacion,
-            p.nombre AS proveedor,
-            CONCAT(per.nombres, ' ', per.primer_apellido, ' ', per.segundo_apellido) AS usuario,
-            dc.id_insumo,
-            i.nombre AS insumo,
-            dc.cantidad,
-            dc.costo_unitario,
-            (dc.cantidad * dc.costo_unitario) AS subtotal
-        FROM compra c
-        LEFT JOIN proveedor p ON c.id_proveedor = p.id_proveedor
-        JOIN usuario u ON c.id_usuario = u.id_usuario
-        JOIN personal per ON u.id_personal = per.id_personal
-        JOIN detalle_compra dc ON c.id_compra = dc.id_compra
-        JOIN insumo i ON dc.id_insumo = i.id_insumo
-        WHERE 1=1
-    """
-    params = []
-
-    if fecha_inicio:
-        consulta += " AND c.fecha >= %s"
-        params.append(fecha_inicio)
-    if fecha_fin:
-        consulta += " AND c.fecha <= %s"
-        params.append(fecha_fin)
-    if id_proveedor:
-        consulta += " AND c.id_proveedor = %s"
-        params.append(id_proveedor)
-
-    consulta += " ORDER BY c.fecha DESC, c.id_compra DESC"
-
-    try:
-        async with conn.cursor() as cur:
-            await cur.execute(consulta, params)
-            rows = await cur.fetchall()
-            return rows
-    except Exception as e:
-        logger.error(f"Error obteniendo reporte de compras: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Error al obtener el reporte de compras")
+        logger.error(f"Error al registrar compra: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))

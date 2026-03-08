@@ -107,7 +107,7 @@ async def actualizar_producto(id: int, producto: ProductoInsert, conn=Depends(ge
 
     consulta = """
         UPDATE producto
-        SET nombre = %s, costo = %s, costo = %s, precio_venta = %s, activo = %s
+        SET id_categoria = %s, nombre = %s, costo = %s, precio_venta = %s, activo = %s
         WHERE id_producto = %s
         RETURNING id_producto, id_categoria, nombre, costo, precio_venta, activo;
     """
@@ -118,10 +118,12 @@ async def actualizar_producto(id: int, producto: ProductoInsert, conn=Depends(ge
             await cursor.execute(
                 consulta,
                 (
+                    producto.id_categoria,
                     producto.nombre,
                     producto.costo,
                     producto.precio_venta,
-                    producto.activo
+                    producto.activo,
+                    id
                 )
             )
 

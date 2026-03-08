@@ -1,36 +1,49 @@
 import logging
+
 logger = logging.getLogger(__name__)
 
 
-def verificar_stock_minimos(conn) -> list[dict]:
-    """Retorna insumos bajo stock mínimo."""
-    with conn.cursor() as cur:
-        cur.execute("""
-            SELECT
-                i.id_insumo,
-                i.nombre,
-                i.categoria,
-                i.unidad_medida,
-                i.stock_minimo,
-                COALESCE(SUM(dc.cantidad_disponible), 0) AS stock_actual
-            FROM insumo i
-            LEFT JOIN detalle_compra dc ON dc.id_insumo = i.id_insumo
-            WHERE i.activo = TRUE
-            GROUP BY i.id_insumo, i.nombre, i.categoria, i.unidad_medida, i.stock_minimo
-            HAVING COALESCE(SUM(dc.cantidad_disponible), 0) < i.stock_minimo
-            ORDER BY stock_actual ASC
-        """)
-        cols = [desc[0] for desc in cur.description]
-        rows = cur.fetchall()
-        return [dict(zip(cols, row)) for row in rows]
 
-
-def obtener_stock_insumo(conn, id_insumo: int) -> float:
+async def obtener_stock_insumo(conn, id_insumo: int) -> float:
     """Retorna el stock actual de un insumo."""
-    with conn.cursor() as cur:
-        cur.execute("""
-            SELECT COALESCE(SUM(cantidad_disponible), 0)
-            FROM detalle_compra
-            WHERE id_insumo = %s
-        """, (id_insumo,))
-        return float(cur.fetchone()[0])
+    try:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT stock
+                FROM insumo
+                WHERE id_insumo = %s
+                """,
+                (id_insumo,)
+            )
+            result = await cur.fetchone()
+            if not result:
+                return 0.0
+            return float(result[0] if isinstance(result, tuple) else result['stock'])
+    except Exception as e:
+        logger.error(f"Error obteniendo stock: {e}", exc_info=True)
+        return 0.0
+
+
+async def listar_insumos_bajo_stock(conn, umbral_minimo: float = 10.0) -> list[dict]:
+    """
+    Retorna insumos con stock menor al umbral especificado.
+    Por defecto umbral es 10.
+    """
+    try:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT id_insumo, nombre, unidad, stock, activo
+                FROM insumo
+                WHERE stock < %s AND activo = TRUE
+                ORDER BY stock ASC
+                """,
+                (umbral_minimo,)
+            )
+            rows = await cur.fetchall()
+            cols = [desc[0] for desc in cur.description]
+            return [dict(zip(cols, row)) for row in rows]
+    except Exception as e:
+        logger.error(f"Error listando insumos bajo stock: {e}", exc_info=True)
+        return []

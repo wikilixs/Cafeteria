@@ -41,7 +41,7 @@ async def listar_por_id(id: int, conn=Depends(get_conexion)):
     consulta = """
         SELECT id_categoria, nombre
         FROM categoria_producto
-        WHERE id_categoria_producto = %s;
+        WHERE id_categoria = %s;
     """
 
     try:

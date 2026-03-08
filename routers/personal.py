@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from config.conexionDB import pool, get_conexion, app
+from services.creacion_empleado import crear_empleado
 from datetime import date
 from typing import Optional
 
@@ -28,6 +29,17 @@ class PersonalCreate(BaseModel):
     fecha_nacimiento: date
     telefono: int
     fecha_ingreso: date
+
+class PersonalCreateSimple(BaseModel):
+    id_rol: int
+    ci: int
+    nombres: str
+    primer_apellido: str
+    segundo_apellido: str
+    fecha_nacimiento: date
+    telefono: int
+    fecha_ingreso: date
+    crear_usuario: bool = False
 
 
 @router.get("/")
@@ -59,7 +71,33 @@ async def obtener_personal(id_personal: int, conn=Depends(get_conexion)):
     except Exception as e:
         print(f"Error al obtener personal por ID: {e}")
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
-    
+
+
+@router.post("/crear")
+async def crear_personal_simple(personal: PersonalCreateSimple, conn=Depends(get_conexion)):
+    """
+    Crea un empleado (personal) con opción de crear usuario automáticamente.
+    Si crear_usuario=true, genera email y contraseña automáticamente.
+    """
+    try:
+        resultado = await crear_empleado(
+            conn,
+            personal.id_rol,
+            personal.ci,
+            personal.nombres,
+            personal.primer_apellido,
+            personal.segundo_apellido,
+            personal.fecha_nacimiento,
+            personal.telefono,
+            personal.fecha_ingreso,
+            crear_usuario=personal.crear_usuario
+        )
+        return resultado
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error al crear personal: {e}")
+        raise HTTPException(status_code=500, detail="Error al crear personal")
 @router.post("/")
 async def crear_personal(personal: PersonalCreate, conn=Depends(get_conexion)):
     consulta = """

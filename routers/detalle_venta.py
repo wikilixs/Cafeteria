@@ -8,13 +8,6 @@ from typing import Optional
 router = APIRouter()
 
 class DetalleVentaCrear(BaseModel):
-    id_detalle_venta: int
-    id_venta:        int
-    id_producto:     int
-    cantidad:        int
-    precio_unitario: Decimal
-
-class DetalleVentaActualizar(BaseModel):
     id_venta:        int
     id_producto:     int
     cantidad:        int
