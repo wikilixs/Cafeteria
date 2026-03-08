@@ -1,4 +1,5 @@
 import logging
+import bcrypt
 from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
@@ -38,13 +39,15 @@ async def crear_empleado(conn, id_rol, ci, nombres, primer_apellido, segundo_ape
             email = f"{nombre_limpio}.{apellido_limpio}@cafeteria.com"
             password = str(ci)[-6:]
 
+            password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
             await cur.execute(
                 """
                 INSERT INTO usuario (id_personal, email, password_hash, activo)
                 VALUES (%s, %s, %s, TRUE)
                 RETURNING id_usuario
                 """,
-                (id_personal, email, password)
+                (id_personal, email, password_hash)
             )
             row2 = await cur.fetchone()
             resultado["id_usuario"] = row2["id_usuario"]
@@ -92,6 +95,8 @@ async def crear_usuario_para_empleado(conn, id_personal):
         email = f"{nombre_limpio}.{apellido_limpio}@cafeteria.com"
         password = str(ci)[-6:]
 
+        password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
         # 3. Insertar usuario
         await cur.execute(
             """
@@ -99,7 +104,7 @@ async def crear_usuario_para_empleado(conn, id_personal):
             VALUES (%s, %s, %s, TRUE)
             RETURNING id_usuario
             """,
-            (id_personal, email, password)
+            (id_personal, email, password_hash)
         )
         row = await cur.fetchone()
 

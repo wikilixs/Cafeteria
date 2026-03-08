@@ -1,20 +1,326 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cafeteria - Sistema de Ventas</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 600px; margin: auto; }
-        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Iniciar Sesión</title>
+  <meta name="description" content="Sistema de gestión de cafetería. Ingresa con tu email y contraseña.">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* ---- Decoración de fondo ---- */
+    .bg-circles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .bg-circles span {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.06;
+      filter: blur(60px);
+    }
+    .bg-circles span:nth-child(1) {
+      width: 500px; height: 500px;
+      background: var(--color-primary);
+      top: -120px; right: -100px;
+    }
+    .bg-circles span:nth-child(2) {
+      width: 350px; height: 350px;
+      background: #3b82f6;
+      bottom: -80px; left: -80px;
+    }
+    .bg-circles span:nth-child(3) {
+      width: 200px; height: 200px;
+      background: var(--color-primary);
+      bottom: 30%; left: 60%;
+    }
+
+    .login-page { position: relative; z-index: 1; }
+
+    /* ---- Indicador de rol ---- */
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245,158,11,0.12);
+      border: 1px solid rgba(245,158,11,0.3);
+      color: var(--color-primary);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
+
+    /* ---- Password toggle ---- */
+    .password-wrapper {
+      position: relative;
+    }
+    .password-wrapper .form-control {
+      padding-left: 42px;
+      padding-right: 44px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+      transition: color var(--transition);
+    }
+    .toggle-password:hover { color: var(--color-text); }
+
+    /* ---- Footer del card ---- */
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.78rem;
+      color: var(--color-text-muted);
+    }
+
+    /* ---- Versión ---- */
+    .version-tag {
+      position: fixed;
+      bottom: 16px;
+      right: 20px;
+      font-size: 0.72rem;
+      color: var(--color-text-muted);
+      opacity: 0.5;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Sistema de Cafeteria</h1>
-        <button onclick="window.location.href='plantilla.compra.html'">Hacer una Compra</button>
-        <button onclick="window.location.href='plantilla.venta.html'">Hacer una Venta</button>
+
+<!-- Decoración de fondo -->
+<div class="bg-circles">
+  <span></span><span></span><span></span>
+</div>
+
+<div class="login-page">
+  <div class="login-card">
+
+    <!-- Logo / Header -->
+    <div class="login-logo">
+      <span class="icon">☕</span>
+      <h1>Cafetería</h1>
+      <p>Sistema de Gestión Interno</p>
     </div>
+
+    <!-- Alerta de error -->
+    <div class="alert alert-error" id="alert-error" role="alert">
+      <span>⚠️</span>
+      <span id="alert-msg">Credenciales incorrectas</span>
+    </div>
+
+    <!-- Formulario de login -->
+    <form id="login-form" novalidate>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <div class="input-icon-wrapper">
+          <span class="icon">✉️</span>
+          <input
+            type="email"
+            id="email"
+            class="form-control"
+            placeholder="nombre@cafeteria.com"
+            autocomplete="email"
+            required
+          >
+        </div>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <div class="password-wrapper input-icon-wrapper">
+          <span class="icon">🔒</span>
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          >
+          <button type="button" class="toggle-password" id="toggle-pw" aria-label="Mostrar contraseña">
+            👁️
+          </button>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn btn-primary btn-block" id="btn-login">
+        <div class="spinner" id="spinner"></div>
+        <span id="btn-text">Iniciar sesión</span>
+      </button>
+
+    </form>
+
+    <!-- Info de usuario logueado (aparece post-login si ya hay sesión) -->
+    <div id="sesion-activa" style="display:none; margin-top:20px;">
+      <div class="divider">Sesión activa</div>
+      <p style="text-align:center; font-size:.85rem; color:var(--color-text-muted); margin-bottom:12px;">
+        Ya iniciaste sesión como <strong id="nombre-activo" style="color:var(--color-text)"></strong>
+        <span class="role-badge" id="rol-activo"></span>
+      </p>
+      <button class="btn btn-primary btn-block" id="btn-continuar">Continuar →</button>
+      <button
+        onclick="logout()"
+        style="margin-top:10px;width:100%;background:none;border:none;color:var(--color-text-muted);font-size:.82rem;cursor:pointer;padding:4px;"
+      >
+        Cerrar sesión y usar otra cuenta
+      </button>
+    </div>
+
+    <div class="login-footer">
+      Solo el personal autorizado puede ingresar al sistema.
+    </div>
+
+  </div>
+</div>
+
+<div class="version-tag">v1.0 · 2026</div>
+
+<script src="js/auth.js"></script>
+<script>
+  /* ============================================================
+     Al cargar: verificar si ya hay sesión activa
+     ============================================================ */
+  window.addEventListener('DOMContentLoaded', () => {
+    const usuario = getUsuario();
+    const token   = getToken();
+
+    if (token && usuario) {
+      // Verificar que el token no haya expirado
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (Date.now() / 1000 < payload.exp) {
+          // Sesión válida → mostrar sección "continuar"
+          document.getElementById('login-form').style.display = 'none';
+          document.getElementById('sesion-activa').style.display = 'block';
+          document.getElementById('nombre-activo').textContent = usuario.nombre;
+          document.getElementById('rol-activo').textContent = usuario.rol;
+
+          document.getElementById('btn-continuar').addEventListener('click', () => {
+            const ruta = RUTA_POR_ROL[usuario.id_rol];
+            if (ruta) window.location.href = '/app/' + ruta;
+          });
+          return;
+        }
+      } catch { /* token corrupto, continuar mostrando login */ }
+      limpiarSesion();
+    }
+  });
+
+  /* ============================================================
+     Toggle mostrar/ocultar contraseña
+     ============================================================ */
+  document.getElementById('toggle-pw').addEventListener('click', () => {
+    const input = document.getElementById('password');
+    const btn   = document.getElementById('toggle-pw');
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+    }
+  });
+
+  /* ============================================================
+     Submit del formulario
+     ============================================================ */
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    console.log('📝 [Login] Formulario enviado (preventDefault activado)');
+
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const alertEl  = document.getElementById('alert-error');
+    const alertMsg = document.getElementById('alert-msg');
+    const spinner  = document.getElementById('spinner');
+    const btnText  = document.getElementById('btn-text');
+    const btn      = document.getElementById('btn-login');
+
+    console.log('📧 [Login] Email:', email);
+
+    // Ocultar alerta previa
+    alertEl.classList.remove('show');
+
+    // Estado cargando
+    spinner.classList.add('show');
+    btnText.textContent = 'Verificando...';
+    btn.disabled = true;
+
+    try {
+      console.log('🔗 [Login] Llamando a /auth/login ...');
+      const usuario = await login(email, password);
+      console.log('✅ [Login] Respuesta de API:', usuario);
+      console.log('📋 [Login] RUTA_POR_ROL disponible:', RUTA_POR_ROL);
+
+      // Éxito: pequeña animación y redirigir
+      btnText.textContent = '✓ Bienvenido';
+      btn.style.background = 'var(--color-success)';
+
+      const ruta = RUTA_POR_ROL[usuario.id_rol];
+      console.log('🔀 [Login] Buscando ruta para id_rol:', usuario.id_rol);
+      console.log('🔀 [Login] Ruta encontrada:', ruta);
+
+      if (!ruta) {
+        console.warn('⚠️ [Login] No hay ruta definida para id_rol:', usuario.id_rol);
+      }
+
+      const destino = '/app/' + (ruta || 'plantillas/venta.html');
+      console.log('🚀 [Login] Destino final:', destino);
+      
+      console.log('⏱️ [Login] Esperando 600ms antes de redirigir...');
+      setTimeout(() => {
+        console.log('⏬ [Login] Ejecutando redirección a:', destino);
+        window.location.href = destino;
+        console.log('✈️ [Login] Comando de redirección ejecutado (deberías ver cambio de página)');
+      }, 600);
+
+    } catch (err) {
+      console.error('❌ [Login] Error:', err.message);
+      // Mostrar error
+      alertMsg.textContent = err.message || 'Credenciales incorrectas';
+      alertEl.classList.add('show');
+
+      // Shake animation
+      const card = document.querySelector('.login-card');
+      card.style.animation = 'none';
+      requestAnimationFrame(() => {
+        card.style.animation = 'shake 0.4s ease';
+      });
+
+      // Restaurar botón
+      spinner.classList.remove('show');
+      btnText.textContent = 'Iniciar sesión';
+      btn.disabled = false;
+      btn.style.background = '';
+    }
+  });
+</script>
+
+<style>
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-8px); }
+    40%       { transform: translateX(8px); }
+    60%       { transform: translateX(-5px); }
+    80%       { transform: translateX(5px); }
+  }
+</style>
+
 </body>
 </html>

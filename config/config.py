@@ -31,6 +31,9 @@ class Configuracion(BaseSettings):
     database: str
 
 
+    secret_key: str = "cafeteria_secret_key_2026"
+
+
 
 
 

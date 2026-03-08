@@ -1,6 +1,9 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from config.conexionDB import pool, get_conexion, app
 from routers import categoria_producto, producto, insumo, proveedor, personal, usuario, rol, compra, detalle_compra, venta, detalle_venta, receta, cliente, estado_venta
+from routers import auth
 from middlewares.corps import add_cors
 from middlewares.errors import add_error_handlers
 from middlewares.login import setup_logging
@@ -11,6 +14,13 @@ setup_logging()
 
 add_cors(app)
 add_error_handlers(app)
+
+# Ruta raíz redirige al login
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/app/index.html")
+
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
 
 
 app.include_router(rol.router, prefix="/rol")
@@ -38,3 +48,6 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+# ---- Servir frontend (debe ir al final, después de todos los routers) ----
+app.mount("/app", StaticFiles(directory="fontend", html=True), name="frontend")

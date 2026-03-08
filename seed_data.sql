@@ -25,8 +25,7 @@ INSERT INTO personal (id_rol, ci, nombres, primer_apellido, segundo_apellido, fe
 INSERT INTO usuario (id_personal, email, password_hash, activo) VALUES
     (1, 'carlos.mamani@cafeteria.com',  '345678', TRUE),
     (2, 'ana.flores@cafeteria.com',     '654321', TRUE),
-    (3, 'luis.condori@cafeteria.com',   '223344', TRUE),
-    (4, 'paola.choque@cafeteria.com',   '332211', TRUE);
+    (3, 'luis.condori@cafeteria.com',   '223344', TRUE);
 
 
 -- ============================================================
@@ -158,14 +157,19 @@ INSERT INTO detalle_compra (id_compra, id_insumo, cantidad, costo_unitario) VALU
     (3, 9,  500.00, 0.02),   -- 500g tomate
     (3, 10, 200.00, 0.03);   -- 200g lechuga
 
-
 -- ============================================================
 -- 12. VENTAS DE EJEMPLO
 -- ============================================================
+
+INSERT INTO estado_venta (nombre) VALUES
+    ('PENDIENTE'),
+    ('CANCELADA'),
+    ('COMPLETADA');
+
 INSERT INTO venta (id_usuario, id_cliente, id_estado, metodo_pago, fecha) VALUES
     (2, 1, 1, 'EFECTIVO', NOW() - INTERVAL '2 days'),
-    (2, 2, 1, 'QR',       NOW() - INTERVAL '1 day'),
-    (3, 3, 3, 'TARJETA',  NOW());
+    (2, 2, 1, 'EFECTIVO',       NOW() - INTERVAL '1 day'),
+    (3, 3, 3, 'EFECTIVO',  NOW());
 
 INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES
     (1, 1, 2,  8.00),   -- 2 cafés americanos
