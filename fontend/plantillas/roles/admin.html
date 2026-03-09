@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Administrador</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../../css/styles.css">
+  <style>
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .module-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: block;
+    }
+    .module-card:hover {
+      border-color: var(--color-primary);
+      background: var(--color-surface-2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .module-card .icon { font-size: 2rem; margin-bottom: 12px; display: block; }
+    .module-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+    .module-card p { font-size: 0.8rem; color: var(--color-text-muted); }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<nav class="navbar">
+  <div class="navbar-brand"><span>☕</span> Cafetería Admin</div>
+  <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
+</nav>
+
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1>Panel de Administración</h1>
+      <p>Bienvenido. Selecciona el módulo que deseas gestionar.</p>
+    </div>
+  </div>
+
+  <div class="modules-grid">
+    <a href="../venta.html" class="module-card">
+      <span class="icon">🛒</span><h3>Ventas</h3><p>Registrar y consultar ventas</p>
+    </a>
+    <a href="../compra.html" class="module-card">
+      <span class="icon">📦</span><h3>Compras</h3><p>Gestionar compras de insumos</p>
+    </a>
+    <a href="../personal.html" class="module-card">
+      <span class="icon">👥</span><h3>Personal</h3><p>Empleados y usuarios del sistema</p>
+    </a>
+    <a href="../productos.html" class="module-card">
+      <span class="icon">🍕</span><h3>Productos</h3><p>Catálogo y categorías</p>
+    </a>
+    <a href="../insumos.html" class="module-card">
+      <span class="icon">🧂</span><h3>Insumos</h3><p>Stock de materias primas</p>
+    </a>
+    <a href="../recetas.html" class="module-card">
+      <span class="icon">📋</span><h3>Recetas</h3><p>Ingredientes e insumos por producto</p>
+    </a>
+    <a href="../reportes.html" class="module-card">
+      <span class="icon">📊</span><h3>Reportes</h3><p>Estadísticas y exportación CSV</p>
+    </a>
+  </div>
+</main>
+
+<script src="../../js/auth.js"></script>
+<script>
+  const usuario = checkAuth([1]);
+  if (usuario) renderUserInfo();
+</script>
+</body>
+</html>

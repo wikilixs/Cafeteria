@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Encargado de Almacén</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../../css/styles.css">
+  <style>
+    .proveedor-nuevo-section {
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); padding: 16px; margin-top: 10px;
+      display: none; flex-direction: column; gap: 12px; animation: fadeUp 0.25s ease;
+    }
+    .proveedor-nuevo-section.visible { display: flex; }
+    .proveedor-toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .proveedor-toggle-row label { font-size: 0.83rem; color: var(--color-text-muted); cursor: pointer; font-weight: 400; }
+    .proveedor-toggle-row input[type="checkbox"] { accent-color: var(--color-primary); width: 16px; height: 16px; }
+    .section-label {
+      font-size: 0.78rem; font-weight: 600; color: var(--color-primary);
+      text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 1px solid var(--color-border); padding-bottom: 6px; margin-bottom: 0;
+    }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--color-border); margin-bottom: 24px; }
+    .tab-btn {
+      background: none; border: none; color: var(--color-text-muted); cursor: pointer;
+      padding: 10px 20px; font-family: var(--font); font-size: 0.9rem; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; transition: all 0.2s;
+    }
+    .tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 600; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <span>☕</span> Cafetería
+    <span class="navbar-sep">›</span><span class="navbar-current">Almacén</span>
+  </div>
+  <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
+</nav>
+
+<main class="main-content">
+  <div class="page-header">
+    <div><h1>Encargado de Almacén</h1><p>Gestión de compras y stock de insumos</p></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="cambiarTab('compras',this)">📦 Compras</button>
+    <button class="tab-btn" onclick="cambiarTab('stock',this)">🧂 Stock / Insumos</button>
+  </div>
+
+  <!-- TAB: COMPRAS -->
+  <div id="tab-compras" class="tab-panel active">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="font-size:1.1rem;font-weight:600">Registro de Compras</h2>
+      <button class="btn btn-primary" onclick="abrirModal('modal-compra')">+ Nueva compra</button>
+    </div>
+    <div class="table-wrapper">
+      <div class="table-toolbar">
+        <span style="font-size:.85rem;color:var(--color-text-muted)">Compras recientes</span>
+        <button class="btn btn-secondary btn-sm" onclick="cargarCompras()" style="margin-left:auto">↻ Actualizar</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Fecha</th><th>Proveedor</th><th>Observación</th><th>Total</th><th>Insumos</th></tr></thead>
+        <tbody id="tbody-compras"><tr><td colspan="6" class="table-empty"><span class="empty-icon">📦</span>Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: STOCK -->
+  <div id="tab-stock" class="tab-panel">
+    <div class="table-wrapper">
+      <div class="table-toolbar">
+        <input class="table-search" type="text" placeholder="Buscar insumo..." oninput="filtrarInsumos(this.value)">
+        <button class="btn btn-secondary btn-sm" onclick="cargarInsumos()">↻ Actualizar</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Nombre</th><th>Unidad</th><th>Stock Actual</th><th>Estado</th><th>Acción</th></tr></thead>
+        <tbody id="tbody-insumos"><tr><td colspan="6" class="table-empty"><span class="empty-icon">🧂</span>Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Modal Nueva Compra -->
+<div class="modal-overlay" id="modal-compra">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>Nueva Compra</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-compra')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="section-label">Proveedor</p>
+      <div class="form-grid-2" style="margin-top:10px">
+        <div class="form-group" id="bloque-sel-prov">
+          <label>Proveedor existente</label>
+          <select id="f-prov" class="form-control"><option value="">Sin proveedor</option></select>
+        </div>
+        <div class="form-group">
+          <label>Observación</label>
+          <input type="text" id="f-obs" class="form-control" placeholder="Compra de ingredientes...">
+        </div>
+      </div>
+      <div class="proveedor-toggle-row">
+        <input type="checkbox" id="chk-nuevo-prov" onchange="toggleNuevoProv(this)">
+        <label for="chk-nuevo-prov">✚ El proveedor no existe — ingresar datos nuevos</label>
+      </div>
+      <div class="proveedor-nuevo-section" id="nuevo-prov-form">
+        <p class="section-label">Datos del nuevo proveedor</p>
+        <div class="form-grid-2">
+          <div class="form-group"><label>Nombre / Empresa *</label><input type="text" id="np-nombre" class="form-control" placeholder="Distribuidora Andes S.R.L."></div>
+          <div class="form-group"><label>Teléfono *</label><input type="number" id="np-tel" class="form-control" placeholder="70012345"></div>
+          <div class="form-group"><label>Email</label><input type="email" id="np-email" class="form-control" placeholder="ventas@proveedor.com"></div>
+          <div class="form-group"><label>Dirección</label><input type="text" id="np-dir" class="form-control" placeholder="Av. Siempre Viva 742"></div>
+        </div>
+      </div>
+      <h4 style="margin:20px 0 10px;font-size:.9rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.5px">Insumos comprados</h4>
+      <div style="background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-sm);overflow:hidden">
+        <table class="cart-table">
+          <thead><tr><th>Insumo</th><th>Cantidad</th><th>Unidad</th><th>Costo Unit. (Bs)</th><th>Subtotal</th><th></th></tr></thead>
+          <tbody id="compra-body"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="agregarFilaCompra()" style="margin-top:10px">+ Agregar insumo</button>
+      <p style="font-size:.78rem;color:var(--color-text-muted);margin-top:8px">💡 Si el insumo no existe en el sistema, se creará automáticamente.</p>
+      <div class="cart-total">Total: <span class="total-amount" id="total-compra">Bs 0.00</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-compra')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-registrar-compra" onclick="registrarCompra()">✓ Registrar Compra</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ajustar Stock -->
+<div class="modal-overlay" id="modal-stock">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Ajustar Stock</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-stock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="stock-label" style="color:var(--color-text-muted);margin-bottom:16px"></p>
+      <div class="form-group"><label>Nuevo Stock *</label><input type="number" id="f-stock-nuevo" class="form-control" step="0.01" min="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-stock')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarStock()">Actualizar Stock</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast" class="toast"></div>
+<script src="../../js/auth.js"></script>
+<script src="../../js/api.js"></script>
+<script>
+  const usuarioActual = checkAuth([1, 6]);
+  if (usuarioActual) renderUserInfo();
+
+  let _insumos = [], _todosInsumos = [], _proveedores = [], _stockId = null;
+
+  function cambiarTab(id, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + id).classList.add('active');
+    if (id === 'stock' && !_todosInsumos.length) cargarInsumos();
+  }
+
+  async function init() {
+    const [rI, rP] = await Promise.all([apiFetch('/insumo/'), apiFetch('/proveedor/')]);
+    if (rI) { _insumos = await rI.json(); _todosInsumos = _insumos; }
+    if (rP) { _proveedores = await rP.json(); poblarSelectProv(); }
+    cargarCompras();
+  }
+
+  function poblarSelectProv() {
+    const sel = document.getElementById('f-prov');
+    sel.innerHTML = '<option value="">Sin proveedor</option>';
+    _proveedores.forEach(p => sel.innerHTML += `<option value="${p.id_proveedor}">${esc(p.nombre)}</option>`);
+  }
+
+  function toggleNuevoProv(chk) {
+    const panel = document.getElementById('nuevo-prov-form');
+    const selBloque = document.getElementById('bloque-sel-prov');
+    if (chk.checked) { panel.classList.add('visible'); selBloque.style.opacity = '0.35'; selBloque.querySelector('select').disabled = true; }
+    else { panel.classList.remove('visible'); selBloque.style.opacity = '1'; selBloque.querySelector('select').disabled = false; }
+  }
+
+  async function cargarCompras() {
+    document.getElementById('tbody-compras').innerHTML = '<tr><td colspan="6" class="table-empty"><span class="empty-icon">📦</span>Cargando...</td></tr>';
+    const res = await apiFetch('/compra/reporte/detallado');
+    if (!res) return;
+    const data = await res.json();
+    const compraMap = {};
+    data.forEach(r => {
+      if (!compraMap[r.id_compra]) compraMap[r.id_compra] = { ...r, insumos: [] };
+      if (r.insumo) compraMap[r.id_compra].insumos.push(`${r.insumo} x${r.cantidad}`);
+    });
+    const compras = Object.values(compraMap).sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 50);
+    const tb = document.getElementById('tbody-compras');
+    if (!compras.length) { tb.innerHTML = '<tr><td colspan="6" class="table-empty"><span class="empty-icon">📦</span>Sin compras registradas</td></tr>'; return; }
+    tb.innerHTML = compras.map(c => `
+      <tr>
+        <td>${c.id_compra}</td><td>${formatFecha(c.fecha)}</td>
+        <td>${esc(c.proveedor||'—')}</td><td>${esc(c.observacion||'—')}</td>
+        <td><strong>${formatBs(c.total||0)}</strong></td>
+        <td style="font-size:.82rem;color:var(--color-text-muted);max-width:220px">${c.insumos.join(', ')||'—'}</td>
+      </tr>`).join('');
+  }
+
+  async function cargarInsumos() {
+    document.getElementById('tbody-insumos').innerHTML = '<tr><td colspan="6" class="table-empty"><span class="empty-icon">🧂</span>Cargando...</td></tr>';
+    const res = await apiFetch('/insumo/');
+    if (!res) return;
+    _todosInsumos = await res.json();
+    _insumos = _todosInsumos;
+    renderInsumos(_todosInsumos);
+  }
+
+  function renderInsumos(data) {
+    const tb = document.getElementById('tbody-insumos');
+    if (!data.length) { tb.innerHTML = '<tr><td colspan="6" class="table-empty"><span class="empty-icon">🧂</span>Sin insumos</td></tr>'; return; }
+    tb.innerHTML = data.map(i => {
+      const stockBadge = i.stock < 50 ? `<span class="badge badge-warning">${i.stock}</span>` : `<span class="badge badge-success">${i.stock}</span>`;
+      return `<tr>
+        <td>${i.id_insumo}</td><td><strong>${esc(i.nombre)}</strong></td>
+        <td>${esc(i.unidad)}</td><td>${stockBadge} ${esc(i.unidad)}</td>
+        <td>${badgeActivo(i.activo)}</td>
+        <td><button class="btn btn-secondary btn-icon" onclick="ajustarStock(${i.id_insumo})">📦 Ajustar stock</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filtrarInsumos(q) {
+    const t = q.toLowerCase();
+    renderInsumos(_todosInsumos.filter(i => (i.nombre||'').toLowerCase().includes(t)));
+  }
+
+  function ajustarStock(id) {
+    _stockId = id;
+    const i = _todosInsumos.find(x => x.id_insumo === id);
+    document.getElementById('stock-label').textContent = `Insumo: ${i.nombre} — Stock actual: ${i.stock} ${i.unidad}`;
+    document.getElementById('f-stock-nuevo').value = i.stock;
+    abrirModal('modal-stock');
+  }
+
+  async function guardarStock() {
+    const stock = parseFloat(document.getElementById('f-stock-nuevo').value);
+    if (isNaN(stock) || stock < 0) { mostrarToast('Stock inválido', 'error'); return; }
+    const i = _todosInsumos.find(x => x.id_insumo === _stockId);
+    const res = await apiFetch(`/insumo/${_stockId}`, { method: 'PUT', body: JSON.stringify({ nombre: i.nombre, unidad: i.unidad, stock, activo: i.activo }) });
+    if (res && res.ok) { mostrarToast('Stock actualizado'); cerrarModal('modal-stock'); cargarInsumos(); }
+    else { const e = await res.json(); mostrarToast(e.detail || 'Error', 'error'); }
+  }
+
+  function agregarFilaCompra() {
+    const tbody = document.getElementById('compra-body');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="text" class="ins-nombre" list="insumos-list" placeholder="Nombre del insumo" oninput="autocompletarUnidad(this)"></td>
+      <td><input type="number" class="cant" value="1" min="0.01" step="0.01" onchange="calcCompraTotal()"></td>
+      <td><input type="text" class="unidad" placeholder="g / ml / unidad"></td>
+      <td><input type="number" class="costo" value="0" min="0" step="0.01" onchange="calcCompraTotal()"></td>
+      <td class="sub-compra">Bs 0.00</td>
+      <td><button class="btn btn-danger btn-icon" onclick="this.closest('tr').remove();calcCompraTotal()">✕</button></td>`;
+    tbody.appendChild(row);
+  }
+
+  function autocompletarUnidad(el) {
+    const match = _insumos.find(i => i.nombre.toLowerCase() === el.value.trim().toLowerCase());
+    if (match) el.closest('tr').querySelector('.unidad').value = match.unidad;
+    calcCompraTotal();
+  }
+
+  function calcCompraTotal() {
+    let total = 0;
+    document.querySelectorAll('#compra-body tr').forEach(row => {
+      const cant = parseFloat(row.querySelector('.cant').value) || 0;
+      const costo = parseFloat(row.querySelector('.costo').value) || 0;
+      row.querySelector('.sub-compra').textContent = formatBs(cant * costo);
+      total += cant * costo;
+    });
+    document.getElementById('total-compra').textContent = formatBs(total);
+  }
+
+  async function registrarCompra() {
+    const btn = document.getElementById('btn-registrar-compra');
+    const detalles = [];
+    for (const row of document.querySelectorAll('#compra-body tr')) {
+      const nombre = row.querySelector('.ins-nombre').value.trim();
+      const cantidad = parseFloat(row.querySelector('.cant').value);
+      const unidad = row.querySelector('.unidad').value.trim();
+      const costo_unitario = parseFloat(row.querySelector('.costo').value);
+      if (nombre && cantidad > 0) detalles.push({ nombre, cantidad, unidad: unidad || 'unidad', costo_unitario: costo_unitario || 0 });
+    }
+    if (!detalles.length) { mostrarToast('Agrega al menos un insumo', 'error'); return; }
+    btn.disabled = true; btn.textContent = 'Registrando...';
+
+    let id_proveedor = parseInt(document.getElementById('f-prov').value) || null;
+    if (document.getElementById('chk-nuevo-prov').checked) {
+      const npNombre = document.getElementById('np-nombre').value.trim();
+      const npTel = parseInt(document.getElementById('np-tel').value);
+      if (!npNombre || !npTel) { mostrarToast('El nuevo proveedor requiere nombre y teléfono', 'error'); btn.disabled = false; btn.textContent = '✓ Registrar Compra'; return; }
+      const rProv = await apiFetch('/proveedor/', { method: 'POST', body: JSON.stringify({ nombre: npNombre, telefono: npTel, email: document.getElementById('np-email').value.trim() || 'sin@email.com', direccion: document.getElementById('np-dir').value.trim() || 'Sin dirección', activo: true }) });
+      if (!rProv || !rProv.ok) { mostrarToast('Error al crear proveedor', 'error'); btn.disabled = false; btn.textContent = '✓ Registrar Compra'; return; }
+      const np = await rProv.json(); id_proveedor = np.id_proveedor;
+      _proveedores.push(np); poblarSelectProv(); mostrarToast(`Proveedor "${npNombre}" creado`, 'info');
+    }
+
+    const observacion = document.getElementById('f-obs').value.trim() || null;
+    const res = await apiFetch('/compra/', { method: 'POST', body: JSON.stringify({ id_usuario: usuarioActual.id_usuario, id_proveedor, observacion, detalles }) });
+    btn.disabled = false; btn.textContent = '✓ Registrar Compra';
+    if (!res) return;
+    if (res.ok) {
+      const data = await res.json(); mostrarToast(`Compra #${data.id_compra} registrada`);
+      cerrarModal('modal-compra');
+      document.getElementById('compra-body').innerHTML = '';
+      document.getElementById('chk-nuevo-prov').checked = false; toggleNuevoProv({ checked: false });
+      document.getElementById('f-obs').value = '';
+      calcCompraTotal(); cargarCompras();
+    } else { const e = await res.json(); mostrarToast(e.detail || 'Error', 'error'); }
+  }
+
+  // datalist autocompletar
+  const dl = document.createElement('datalist'); dl.id = 'insumos-list'; document.body.appendChild(dl);
+
+  init().then(() => {
+    _insumos.forEach(i => { const opt = document.createElement('option'); opt.value = i.nombre; dl.appendChild(opt); });
+  });
+</script>
+</body>
+</html>

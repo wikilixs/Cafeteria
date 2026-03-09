@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Recetas</title>
+  <meta name="description" content="Gestión de recetas: ingredientes e insumos por producto.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    /* ── Layout de tarjetas por producto ── */
+    .recipes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+
+    .recipe-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .recipe-card:hover {
+      box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    }
+
+    .recipe-card-header {
+      background: var(--color-surface-2);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .recipe-card-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .recipe-card-title .cat-badge {
+      font-size: 0.72rem;
+      font-weight: 400;
+      background: rgba(245,158,11,0.12);
+      color: var(--color-primary);
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(245,158,11,0.2);
+    }
+
+    .recipe-card-body {
+      padding: 14px 18px;
+    }
+
+    .ingredient-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.88rem;
+    }
+    .ingredient-row:last-child { border-bottom: none; }
+    .ingredient-name { flex: 1; color: var(--color-text); }
+    .ingredient-qty {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 2px 10px;
+      font-size: 0.82rem;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+    .ingredient-actions { display: flex; gap: 6px; }
+    .ingredient-actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      transition: background 0.15s;
+      color: var(--color-text-muted);
+    }
+    .ingredient-actions button:hover { background: var(--color-surface-2); color: var(--color-text); }
+
+    .recipe-card-add {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-surface-2);
+    }
+    .recipe-card-add button {
+      background: none;
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-muted);
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+      font-family: var(--font);
+    }
+    .recipe-card-add button:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: rgba(245,158,11,0.05);
+    }
+
+    /* Sin recetas */
+    .empty-recipe { padding: 14px 18px; color: var(--color-text-muted); font-size: 0.85rem; text-align: center; }
+
+    /* Selector de producto en la cabecera de búsqueda */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .filter-bar .table-search { flex: 1; min-width: 200px; }
+    .filter-bar select { min-width: 180px; }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a href="admin.html" class="brand-link"><span>☕</span> Cafetería</a>
+    <span class="navbar-sep">›</span><span class="navbar-current">Recetas</span>
+  </div>
+  <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
+</nav>
+
+<main class="main-content">
+  <div class="page-header">
+    <div>
+      <h1>Recetas</h1>
+      <p>Ingredientes e insumos requeridos para preparar cada producto</p>
+    </div>
+    <button class="btn btn-primary" id="btn-nueva" onclick="nuevaReceta()">+ Nueva línea de receta</button>
+  </div>
+
+  <!-- Barra de filtro -->
+  <div class="filter-bar">
+    <input class="table-search form-control" type="text" id="search-box" placeholder="Buscar producto..." oninput="filtrar(this.value)">
+    <button class="btn btn-secondary btn-sm" onclick="cargar()">↻ Actualizar</button>
+  </div>
+
+  <!-- Cuadrícula de tarjetas -->
+  <div class="recipes-grid" id="recipes-grid">
+    <p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:40px 0">
+      <span style="font-size:2rem">📋</span><br>Cargando recetas...
+    </p>
+  </div>
+</main>
+
+<!-- ─── Modal: Nueva / Editar línea ─── -->
+<div class="modal-overlay" id="modal-form">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Nueva línea de receta</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-form')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Producto *</label>
+        <select id="f-producto" class="form-control" onchange="sincronizarProducto()"></select>
+      </div>
+      <div class="form-group">
+        <label>Insumo *</label>
+        <select id="f-insumo" class="form-control"></select>
+      </div>
+      <div class="form-group">
+        <label>Cantidad *</label>
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="number" id="f-cantidad" class="form-control" step="0.01" min="0.01" placeholder="0.00" style="flex:1">
+          <span id="f-unidad-hint" style="color:var(--color-text-muted);font-size:0.85rem;white-space:nowrap;min-width:40px"></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-form')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast" class="toast"></div>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  checkAuth([1]);
+  renderUserInfo();
+
+  // ── Estado global ────────────────────────────────────────────
+  let _recetas   = [];   // filas de la tabla receta (raw)
+  let _productos = [];   // lista de productos
+  let _insumos   = [];   // lista de insumos
+  let _editId    = null; // id_receta en edición (null = nuevo)
+
+  // ── Carga de datos ───────────────────────────────────────────
+  async function cargar() {
+    document.getElementById('recipes-grid').innerHTML =
+      '<p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:40px 0"><span style="font-size:2rem">📋</span><br>Cargando...</p>';
+
+    const [rR, rP, rI] = await Promise.all([
+      apiFetch('/receta/'),
+      apiFetch('/producto/'),
+      apiFetch('/insumo/')
+    ]);
+    if (!rR || !rP || !rI) return;
+
+    _recetas   = await rR.json();
+    _productos = await rP.json();
+    _insumos   = await rI.json();
+
+    poblarSelectores();
+    renderGrid(_productos);
+  }
+
+  // ── Selects del modal ─────────────────────────────────────────
+  function poblarSelectores() {
+    document.getElementById('f-producto').innerHTML =
+      _productos.map(p => `<option value="${p.id_producto}">${esc(p.nombre)}</option>`).join('');
+    poblarInsumos();
+  }
+
+  function poblarInsumos() {
+    document.getElementById('f-insumo').innerHTML =
+      _insumos.map(i => `<option value="${i.id_insumo}" data-unidad="${esc(i.unidad)}">${esc(i.nombre)} (${esc(i.unidad)})</option>`).join('');
+    actualizarUnidadHint();
+  }
+
+  function sincronizarProducto() { /* no-op, select ya está en sync */ }
+
+  function actualizarUnidadHint() {
+    const sel = document.getElementById('f-insumo');
+    const opt = sel.options[sel.selectedIndex];
+    document.getElementById('f-unidad-hint').textContent = opt ? opt.dataset.unidad : '';
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const insumoSel = document.getElementById('f-insumo');
+    if (insumoSel) insumoSel.addEventListener('change', actualizarUnidadHint);
+  });
+
+  // ── Render de la cuadrícula ───────────────────────────────────
+  function renderGrid(prods) {
+    const q = document.getElementById('search-box').value.toLowerCase();
+    const prodsFiltrados = q
+      ? prods.filter(p => (p.nombre||'').toLowerCase().includes(q))
+      : prods;
+
+    const grid = document.getElementById('recipes-grid');
+    if (!prodsFiltrados.length) {
+      grid.innerHTML = '<p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:40px 0"><span style="font-size:2rem">🔍</span><br>Sin resultados</p>';
+      return;
+    }
+
+    grid.innerHTML = prodsFiltrados.map(p => {
+      const lineas = _recetas.filter(r => r.id_producto === p.id_producto);
+      const categoriaNombre = p.categoria || '—';
+
+      const filas = lineas.length
+        ? lineas.map(r => {
+            const ins = _insumos.find(i => i.id_insumo === r.id_insumo) || {};
+            return `<div class="ingredient-row">
+              <span class="ingredient-name">🧂 ${esc(ins.nombre || '#' + r.id_insumo)}</span>
+              <span class="ingredient-qty">${r.cantidad} ${esc(ins.unidad || '')}</span>
+              <div class="ingredient-actions">
+                <button title="Editar" onclick="editarLinea(${r.id_receta})">✏️</button>
+                <button title="Eliminar" onclick="eliminarLinea(${r.id_receta})">🗑️</button>
+              </div>
+            </div>`;
+          }).join('')
+        : `<div class="empty-recipe">Sin ingredientes definidos</div>`;
+
+      return `<div class="recipe-card">
+        <div class="recipe-card-header">
+          <span class="recipe-card-title">
+            🍽️ ${esc(p.nombre)}
+            <span class="cat-badge">${esc(categoriaNombre)}</span>
+          </span>
+          <span style="font-size:0.78rem;color:var(--color-text-muted)">${lineas.length} ingrediente${lineas.length!==1?'s':''}</span>
+        </div>
+        <div class="recipe-card-body">${filas}</div>
+        <div class="recipe-card-add">
+          <button onclick="nuevaRecetaParaProducto(${p.id_producto})">+ Agregar ingrediente</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function filtrar(q) { renderGrid(_productos); }
+
+  // ── Abrir modal: nueva receta genérica ───────────────────────
+  function nuevaReceta() {
+    _editId = null;
+    document.getElementById('modal-title').textContent = 'Nueva línea de receta';
+    document.getElementById('f-producto').value = _productos[0]?.id_producto ?? '';
+    document.getElementById('f-insumo').value   = _insumos[0]?.id_insumo   ?? '';
+    document.getElementById('f-cantidad').value = '';
+    actualizarUnidadHint();
+    document.getElementById('f-producto').disabled = false;
+    abrirModal('modal-form');
+  }
+
+  // ── Abrir modal: nueva receta con producto preseleccionado ───
+  function nuevaRecetaParaProducto(idProducto) {
+    _editId = null;
+    document.getElementById('modal-title').textContent = 'Agregar ingrediente';
+    document.getElementById('f-producto').value = idProducto;
+    document.getElementById('f-insumo').value   = _insumos[0]?.id_insumo ?? '';
+    document.getElementById('f-cantidad').value = '';
+    actualizarUnidadHint();
+    document.getElementById('f-producto').disabled = false;
+    abrirModal('modal-form');
+  }
+
+  // ── Abrir modal: editar línea ─────────────────────────────────
+  function editarLinea(idReceta) {
+    const r = _recetas.find(x => x.id_receta === idReceta);
+    if (!r) return;
+    _editId = idReceta;
+    document.getElementById('modal-title').textContent = 'Editar ingrediente';
+    document.getElementById('f-producto').value  = r.id_producto;
+    document.getElementById('f-insumo').value    = r.id_insumo;
+    document.getElementById('f-cantidad').value  = r.cantidad;
+    document.getElementById('f-producto').disabled = true; // no cambiar el producto en edición
+    actualizarUnidadHint();
+    abrirModal('modal-form');
+  }
+
+  // ── Guardar (POST / PUT) ──────────────────────────────────────
+  async function guardar() {
+    const id_producto = parseInt(document.getElementById('f-producto').value);
+    const id_insumo   = parseInt(document.getElementById('f-insumo').value);
+    const cantidad    = parseFloat(document.getElementById('f-cantidad').value);
+
+    if (!id_producto || !id_insumo || isNaN(cantidad) || cantidad <= 0) {
+      mostrarToast('Completa todos los campos correctamente', 'error'); return;
+    }
+
+    const btn = document.getElementById('btn-guardar');
+    btn.disabled = true;
+
+    const body = { id_producto, id_insumo, cantidad };
+    const url    = _editId ? `/receta/${_editId}` : '/receta/';
+    const method = _editId ? 'PUT' : 'POST';
+
+    const res = await apiFetch(url, { method, body: JSON.stringify(body) });
+    btn.disabled = false;
+
+    if (!res) return;
+    if (res.ok) {
+      mostrarToast(_editId ? 'Ingrediente actualizado' : 'Ingrediente agregado');
+      cerrarModal('modal-form');
+      cargar();
+    } else {
+      const e = await res.json();
+      mostrarToast(e.detail || 'Error al guardar', 'error');
+    }
+  }
+
+  // ── Eliminar línea ────────────────────────────────────────────
+  async function eliminarLinea(idReceta) {
+    if (!confirmarEliminar('¿Eliminar este ingrediente de la receta?')) return;
+    const res = await apiFetch(`/receta/${idReceta}`, { method: 'DELETE' });
+    if (res && res.ok) { mostrarToast('Ingrediente eliminado'); cargar(); }
+    else { const e = await res.json(); mostrarToast(e.detail || 'Error', 'error'); }
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+  cargar();
+</script>
+</body>
+</html>

@@ -70,7 +70,7 @@ async def crear_receta(receta: RecetaInsert, conn=Depends(get_conexion)):
 
     consulta = """
         INSERT INTO receta (id_producto, id_insumo, cantidad)
-        VALUES (%s, %s, %s, CURRENT_DATE)
+        VALUES (%s, %s, %s)
         RETURNING id_receta, id_producto, id_insumo, cantidad;
     """
 
@@ -87,6 +87,7 @@ async def crear_receta(receta: RecetaInsert, conn=Depends(get_conexion)):
             )
 
             resultado = await cursor.fetchone()
+            await conn.commit()
             return resultado
 
     except Exception as e:
@@ -125,6 +126,7 @@ async def actualizar_receta(id: int, receta: RecetaInsert, conn=Depends(get_cone
             if resultado is None:
                 raise HTTPException(status_code=404, detail="Receta no encontrada")
 
+            await conn.commit()
             return resultado
 
     except Exception as e:
@@ -151,6 +153,7 @@ async def eliminar_receta(id: int, conn=Depends(get_conexion)):
             if resultado is None:
                 raise HTTPException(status_code=404, detail="Receta no encontrada")
 
+            await conn.commit()
             return {"mensaje": "Receta eliminada correctamente"}
 
     except Exception as e:

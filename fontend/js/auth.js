@@ -13,14 +13,20 @@ const USER_KEY   = 'cafeteria_user';
 const ROLES_CON_ACCESO = {
   1: 'Administrador',
   2: 'Cajero',
+  3: 'Cocinero',
+  4: 'Mesero',
+  5: 'Barista',
   6: 'Encargado de Almacén',
 };
 
 // ---- Rutas por rol (al hacer login exitoso) ----
 const RUTA_POR_ROL = {
-  1: 'plantillas/admin.html',
-  2: 'plantillas/venta.html',
-  6: 'plantillas/compra.html',
+  1: 'plantillas/roles/admin.html',
+  2: 'plantillas/roles/cajero.html',
+  3: 'plantillas/roles/cocinero.html',
+  4: 'plantillas/roles/mesero.html',
+  5: 'plantillas/roles/barista.html',
+  6: 'plantillas/roles/almacen.html',
 };
 
 

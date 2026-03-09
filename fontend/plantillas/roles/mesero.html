@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafetería — Mesero</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../../css/styles.css">
+  <style>
+    .cliente-nuevo-section {
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); padding: 14px; margin-top: 8px;
+      display: none; flex-direction: column; gap: 10px; animation: fadeUp 0.25s ease;
+    }
+    .cliente-nuevo-section.visible { display: flex; }
+    .toggle-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .toggle-row label { font-size: 0.83rem; color: var(--color-text-muted); cursor: pointer; font-weight: 400; }
+    .toggle-row input[type="checkbox"] { accent-color: var(--color-primary); width: 16px; height: 16px; }
+    .pay-confirm-body { text-align: center; padding: 8px 0; }
+    .pay-total-display { font-size: 2.4rem; font-weight: 700; color: var(--color-primary); margin: 12px 0 20px; }
+    .pay-input-row { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 16px; }
+    .pay-input-row input { font-size: 1.6rem; font-weight: 700; width: 180px; text-align: center; background: var(--color-surface-2); border: 2px solid var(--color-primary); border-radius: var(--radius-sm); color: var(--color-text); padding: 10px; outline: none; }
+    .change-display { background: var(--color-surface-2); border-radius: var(--radius-sm); padding: 14px 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .change-display .change-label { color: var(--color-text-muted); font-size: .9rem; }
+    .change-display .change-amount { font-size: 1.5rem; font-weight: 700; color: var(--color-success); }
+    .change-display .change-amount.negative { color: var(--color-error); }
+    .pay-method-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; padding: 4px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; margin-bottom: 16px; }
+    .section-label { font-size: 0.78rem; font-weight: 600; color: var(--color-primary); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--color-border); padding-bottom: 6px; margin-bottom: 0; }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <span>☕</span> Cafetería
+    <span class="navbar-sep">›</span><span class="navbar-current">Mesero</span>
+  </div>
+  <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
+</nav>
+
+<main class="main-content">
+  <div class="page-header">
+    <div><h1>Toma de Pedidos</h1><p>Registra los pedidos de los clientes</p></div>
+    <button class="btn btn-primary" onclick="abrirModal('modal-venta')">+ Nuevo pedido</button>
+  </div>
+
+  <div class="table-wrapper">
+    <div class="table-toolbar">
+      <span style="font-size:.85rem;color:var(--color-text-muted)">Pedidos recientes (hoy)</span>
+      <button class="btn btn-secondary btn-sm" onclick="cargarVentas()" style="margin-left:auto">↻ Actualizar</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Fecha</th><th>Estado</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Pago</th></tr></thead>
+      <tbody id="tbody-ventas"><tr><td colspan="7" class="table-empty"><span class="empty-icon">🍽️</span>Cargando...</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Modal Nuevo Pedido -->
+<div class="modal-overlay" id="modal-venta">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>Nuevo Pedido</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-venta')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="section-label">Cliente</p>
+      <div class="form-grid-2" style="margin-top:10px">
+        <div class="form-group" id="bloque-sel-cliente">
+          <label>Cliente existente</label>
+          <select id="f-cliente" class="form-control"><option value="">Cliente general (sin nombre)</option></select>
+        </div>
+        <div class="form-group">
+          <label>Método de Pago</label>
+          <select id="f-pago" class="form-control">
+            <option value="EFECTIVO">💵 Efectivo</option>
+            <option value="TARJETA">💳 Tarjeta</option>
+            <option value="TRANSFERENCIA">📲 Transferencia</option>
+          </select>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="chk-nuevo-cli" onchange="toggleNuevoCli(this)">
+        <label for="chk-nuevo-cli">✚ El cliente no existe — ingresar datos nuevos</label>
+      </div>
+      <div class="cliente-nuevo-section" id="nuevo-cli-form">
+        <p class="section-label">Datos del nuevo cliente</p>
+        <div class="form-grid-2">
+          <div class="form-group"><label>Nombre completo *</label><input type="text" id="nc-nombre" class="form-control" placeholder="Juan Pérez"></div>
+          <div class="form-group"><label>NIT / CI</label><input type="text" id="nc-nit" class="form-control" placeholder="12345678"></div>
+        </div>
+      </div>
+      <h4 style="margin:20px 0 10px;font-size:.9rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.5px">Productos del pedido</h4>
+      <div style="background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-sm);overflow:hidden">
+        <table class="cart-table">
+          <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Unit.</th><th>Subtotal</th><th></th></tr></thead>
+          <tbody id="cart-body"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="agregarFila()" style="margin-top:10px">+ Agregar producto</button>
+      <div class="cart-total">Total: <span class="total-amount" id="total-amount">Bs 0.00</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-venta')">Cancelar</button>
+      <button class="btn btn-primary" onclick="abrirPago()">💳 Proceder al pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Confirmación de Pago -->
+<div class="modal-overlay" id="modal-pago">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Confirmar Pago</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-pago')">✕</button>
+    </div>
+    <div class="modal-body pay-confirm-body">
+      <p style="color:var(--color-text-muted);font-size:.9rem">Total a cobrar</p>
+      <div class="pay-total-display" id="pay-total-display">Bs 0.00</div>
+      <div class="pay-method-badge" id="pay-method-badge">💵 Efectivo</div>
+      <div id="efectivo-section">
+        <p style="color:var(--color-text-muted);font-size:.88rem;margin-bottom:10px">Monto recibido del cliente (Bs)</p>
+        <div class="pay-input-row"><input type="number" id="monto-recibido" min="0" step="0.01" placeholder="0.00" oninput="calcVuelto()"></div>
+        <div class="change-display">
+          <span class="change-label">Vuelto a entregar</span>
+          <span class="change-amount" id="vuelto-display">Bs 0.00</span>
+        </div>
+      </div>
+      <div id="digital-section" style="display:none">
+        <p style="color:var(--color-text-muted);margin-bottom:16px;font-size:.9rem">Confirma que el pago digital fue recibido correctamente.</p>
+        <div class="change-display" style="justify-content:center">
+          <span style="color:var(--color-success);font-size:1.1rem;font-weight:600">✔ Monto: <span id="digital-monto">Bs 0.00</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-pago')">← Volver</button>
+      <button class="btn btn-primary" id="btn-confirmar-pago" onclick="registrarVenta()" disabled>✓ Confirmar Pedido</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast" class="toast"></div>
+<script src="../../js/auth.js"></script>
+<script src="../../js/api.js"></script>
+<script>
+  const usuarioActual = checkAuth([1, 4]);
+  if (usuarioActual) renderUserInfo();
+
+  let _productos = [], _clientes = [], _totalVenta = 0;
+
+  async function init() {
+    const [rP, rC] = await Promise.all([apiFetch('/producto/'), apiFetch('/cliente/')]);
+    if (rP) _productos = (await rP.json()).filter(p => p.activo !== false);
+    if (rC) { _clientes = await rC.json(); poblarSelectCliente(); }
+    cargarVentas();
+  }
+
+  function poblarSelectCliente() {
+    const sel = document.getElementById('f-cliente');
+    sel.innerHTML = '<option value="">Cliente general (sin nombre)</option>';
+    _clientes.forEach(c => sel.innerHTML += `<option value="${c.id_cliente}">${esc(c.nombre)}${c.nit ? ' — NIT '+esc(c.nit) : ''}</option>`);
+  }
+
+  function toggleNuevoCli(chk) {
+    const panel = document.getElementById('nuevo-cli-form');
+    const bloque = document.getElementById('bloque-sel-cliente');
+    if (chk.checked) { panel.classList.add('visible'); bloque.style.opacity = '0.35'; bloque.querySelector('select').disabled = true; }
+    else { panel.classList.remove('visible'); bloque.style.opacity = '1'; bloque.querySelector('select').disabled = false; }
+  }
+
+  async function cargarVentas() {
+    document.getElementById('tbody-ventas').innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">🍽️</span>Cargando...</td></tr>';
+    const hoy = new Date();
+    const res = await apiFetch(`/venta/reporte/detallado?fecha_inicio=${hoy.toISOString().split('T')[0]}&fecha_fin=${hoy.toISOString().split('T')[0]}`);
+    if (!res) return;
+    const data = await res.json();
+    const ventaMap = {};
+    data.forEach(r => { if (!ventaMap[r.id_venta]) ventaMap[r.id_venta] = { ...r, productos: [] }; if (r.producto) ventaMap[r.id_venta].productos.push(`${r.producto} x${r.cantidad}`); });
+    const ventas = Object.values(ventaMap).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+    const tb = document.getElementById('tbody-ventas');
+    if (!ventas.length) { tb.innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">🍽️</span>Sin pedidos hoy</td></tr>'; return; }
+    tb.innerHTML = ventas.map(v => `<tr><td>${v.id_venta}</td><td>${formatFecha(v.fecha)}</td><td><span class="badge ${v.estado==='COMPLETADA'?'badge-success':v.estado==='CANCELADA'?'badge-error':'badge-warning'}">${esc(v.estado||'—')}</span></td><td>${esc(v.cliente||'General')}</td><td style="max-width:200px;font-size:.82rem">${v.productos.join(', ')||'—'}</td><td><strong>${formatBs(v.total)}</strong></td><td>${esc(v.metodo_pago||'—')}</td></tr>`).join('');
+  }
+
+  function agregarFila() {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td><select class="prod-sel" onchange="actualizarFila(this)"><option value="">— Seleccionar —</option>${_productos.map(p => `<option value="${p.id_producto}" data-precio="${p.precio_venta}">${esc(p.nombre)} (${formatBs(p.precio_venta)})</option>`).join('')}</select></td><td><input type="number" class="cant" value="1" min="1" step="1" onchange="actualizarFila(this)"></td><td class="precio-cell">Bs 0.00</td><td class="sub-cell">Bs 0.00</td><td><button class="btn btn-danger btn-icon" onclick="this.closest('tr').remove();calcTotal()">✕</button></td>`;
+    document.getElementById('cart-body').appendChild(row);
+  }
+
+  function actualizarFila(el) {
+    const row = el.closest('tr'); const sel = row.querySelector('.prod-sel');
+    const precio = parseFloat(sel.options[sel.selectedIndex].getAttribute('data-precio')) || 0;
+    const cant = parseInt(row.querySelector('.cant').value) || 1;
+    row.querySelector('.precio-cell').textContent = formatBs(precio);
+    row.querySelector('.sub-cell').textContent = formatBs(precio * cant);
+    calcTotal();
+  }
+
+  function calcTotal() {
+    let total = 0;
+    document.querySelectorAll('#cart-body .sub-cell').forEach(td => total += parseFloat(td.textContent.replace('Bs ', '')) || 0);
+    _totalVenta = total; document.getElementById('total-amount').textContent = formatBs(total);
+  }
+
+  function abrirPago() {
+    const hayProductos = [...document.querySelectorAll('#cart-body tr')].some(r => r.querySelector('.prod-sel')?.value);
+    if (!hayProductos) { mostrarToast('Agrega al menos un producto', 'error'); return; }
+    if (_totalVenta <= 0) { mostrarToast('El total debe ser mayor a Bs 0', 'error'); return; }
+    const metodo = document.getElementById('f-pago').value;
+    const icons = { EFECTIVO:'💵', TARJETA:'💳', TRANSFERENCIA:'📲' };
+    const labels = { EFECTIVO:'Efectivo', TARJETA:'Tarjeta', TRANSFERENCIA:'Transferencia' };
+    document.getElementById('pay-total-display').textContent = formatBs(_totalVenta);
+    document.getElementById('pay-method-badge').textContent = `${icons[metodo]||'💰'} ${labels[metodo]||metodo}`;
+    document.getElementById('digital-monto').textContent = formatBs(_totalVenta);
+    const esEfectivo = metodo === 'EFECTIVO';
+    document.getElementById('efectivo-section').style.display = esEfectivo ? '' : 'none';
+    document.getElementById('digital-section').style.display = esEfectivo ? 'none' : '';
+    const btnConf = document.getElementById('btn-confirmar-pago');
+    if (esEfectivo) { document.getElementById('monto-recibido').value = ''; document.getElementById('vuelto-display').textContent = 'Bs 0.00'; btnConf.disabled = true; }
+    else btnConf.disabled = false;
+    abrirModal('modal-pago');
+  }
+
+  function calcVuelto() {
+    const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
+    const vuelto = recibido - _totalVenta;
+    const el = document.getElementById('vuelto-display');
+    el.textContent = formatBs(Math.abs(vuelto));
+    el.className = vuelto >= 0 ? 'change-amount' : 'change-amount negative';
+    document.getElementById('btn-confirmar-pago').disabled = recibido < _totalVenta;
+  }
+
+  async function registrarVenta() {
+    const btn = document.getElementById('btn-confirmar-pago');
+    btn.disabled = true; btn.textContent = 'Registrando...';
+    const detalles = [];
+    for (const row of document.querySelectorAll('#cart-body tr')) {
+      const id_producto = parseInt(row.querySelector('.prod-sel').value);
+      const cantidad = parseInt(row.querySelector('.cant').value);
+      const precio_unitario = parseFloat(row.querySelector('.precio-cell').textContent.replace('Bs ', ''));
+      if (id_producto && cantidad > 0) detalles.push({ id_producto, cantidad, precio_unitario });
+    }
+    const crearNuevoCli = document.getElementById('chk-nuevo-cli').checked;
+    let id_cliente = parseInt(document.getElementById('f-cliente').value) || null;
+    let nombre_cliente = null, nit_cliente = null;
+    if (crearNuevoCli) {
+      nombre_cliente = document.getElementById('nc-nombre').value.trim();
+      nit_cliente = document.getElementById('nc-nit').value.trim() || null;
+      if (!nombre_cliente) { mostrarToast('El nombre del cliente es requerido', 'error'); btn.disabled = false; btn.textContent = '✓ Confirmar Pedido'; return; }
+      id_cliente = null;
+    }
+    const body = { id_usuario: usuarioActual.id_usuario, id_cliente, nombre_cliente, nit_cliente, id_estado: 1, metodo_pago: document.getElementById('f-pago').value, detalles };
+    const res = await apiFetch('/venta/', { method: 'POST', body: JSON.stringify(body) });
+    btn.textContent = '✓ Confirmar Pedido'; btn.disabled = false;
+    if (!res) return;
+    if (res.ok) {
+      const data = await res.json();
+      mostrarToast(`✅ Pedido #${data.id_venta} registrado — Total: ${formatBs(data.total)}`);
+      cerrarModal('modal-pago'); cerrarModal('modal-venta');
+      document.getElementById('cart-body').innerHTML = '';
+      document.getElementById('chk-nuevo-cli').checked = false; toggleNuevoCli({ checked: false });
+      ['nc-nombre','nc-nit'].forEach(id => document.getElementById(id).value = '');
+      calcTotal(); cargarVentas();
+    } else { const e = await res.json().catch(() => ({})); mostrarToast(e.detail || 'Error al registrar', 'error'); }
+  }
+
+  init();
+</script>
+</body>
+</html>
