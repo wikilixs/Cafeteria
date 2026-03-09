@@ -272,3 +272,4 @@ Traceback (most recent call last):
     raise ex.with_traceback(None)
 psycopg.errors.ForeignKeyViolation: inserción o actualización en la tabla «detalle_venta» viola la llave foránea «detalle_venta_id_producto_fkey»
 DETAIL:  La llave (id_producto)=(1) no está presente en la tabla «producto».
+2026-03-08 21:30:13 | INFO     | services.venta_service | Cliente nuevo creado: 'Pepito' (id=5)
