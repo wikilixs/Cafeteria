@@ -2,21 +2,25 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cafetería — Mesero</title>
+  <title>Café Aurora — Mesero</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="../css/styles.css">
   <style>
-    .cliente-nuevo-section {
-      background: var(--color-surface-2); border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm); padding: 14px; margin-top: 8px;
-      display: none; flex-direction: column; gap: 10px; animation: fadeUp 0.25s ease;
-    }
+    .cli-search-wrap { position: relative; }
+    .cli-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200; background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: 0 8px 24px rgba(0,0,0,.35); max-height: 200px; overflow-y: auto; display: none; }
+    .cli-dropdown.open { display: block; }
+    .cli-option { padding: 9px 14px; cursor: pointer; font-size: .88rem; border-bottom: 1px solid var(--color-border); transition: background .15s; }
+    .cli-option:last-child { border-bottom: none; }
+    .cli-option:hover { background: rgba(var(--color-primary-rgb),.15); }
+    .cli-badge { display: flex; align-items: center; gap: 8px; margin-top: 8px; background: rgba(var(--color-primary-rgb),.1); border: 1px solid rgba(var(--color-primary-rgb),.25); border-radius: var(--radius-sm); padding: 7px 12px; font-size: .85rem; }
+    .cli-badge .cli-badge-name { font-weight: 600; color: var(--color-text); }
+    .cli-badge .cli-badge-nit { color: var(--color-text-muted); font-size: .8rem; }
+    .cli-badge .cli-badge-clear { margin-left: auto; cursor: pointer; color: var(--color-error); font-size: 1rem; line-height:1; }
+    .cliente-nuevo-section { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 14px; margin-top: 8px; display: none; flex-direction: column; gap: 10px; animation: fadeUp 0.25s ease; }
     .cliente-nuevo-section.visible { display: flex; }
-    .toggle-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-    .toggle-row label { font-size: 0.83rem; color: var(--color-text-muted); cursor: pointer; font-weight: 400; }
-    .toggle-row input[type="checkbox"] { accent-color: var(--color-primary); width: 16px; height: 16px; }
+    .cliente-nuevo-section .form-group { margin-bottom: 0; }
     .pay-confirm-body { text-align: center; padding: 8px 0; }
     .pay-total-display { font-size: 2.4rem; font-weight: 700; color: var(--color-primary); margin: 12px 0 20px; }
     .pay-input-row { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 16px; }
@@ -33,7 +37,7 @@
 
 <nav class="navbar">
   <div class="navbar-brand">
-    <span>☕</span> Cafetería
+    <span>☕</span> Café Aurora
     <span class="navbar-sep">›</span><span class="navbar-current">Mesero</span>
   </div>
   <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
@@ -67,9 +71,31 @@
     <div class="modal-body">
       <p class="section-label">Cliente</p>
       <div class="form-grid-2" style="margin-top:10px">
-        <div class="form-group" id="bloque-sel-cliente">
-          <label>Cliente existente</label>
-          <select id="f-cliente" class="form-control"><option value="">Cliente general (sin nombre)</option></select>
+        <div class="form-group">
+          <label>Buscar por CI / NIT o Nombre</label>
+          <div class="cli-search-wrap">
+            <input type="text" id="cli-search" class="form-control" placeholder="Ej: 12345678 o Juan Pérez" autocomplete="off" oninput="onCliSearch()" onfocus="onCliSearchFocus()">
+            <div class="cli-dropdown" id="cli-dropdown"></div>
+          </div>
+          <div class="cli-badge" id="cli-badge" style="display:none">
+            <span>👤</span>
+            <span class="cli-badge-name" id="cli-badge-name"></span>
+            <span class="cli-badge-nit" id="cli-badge-nit"></span>
+            <span class="cli-badge-clear" onclick="limpiarCliente()" title="Cambiar cliente">✕</span>
+          </div>
+          <div class="cliente-nuevo-section" id="nuevo-cli-form">
+            <p class="section-label" style="margin-bottom:4px">Datos del nuevo cliente</p>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Nombre / Razón Social *</label>
+                <input type="text" id="nc-nombre" class="form-control" placeholder="Ej: Juan Pérez o Mi Empresa S.A.">
+              </div>
+              <div class="form-group">
+                <label>CI / NIT (para factura)</label>
+                <input type="text" id="nc-nit" class="form-control" placeholder="12345678">
+              </div>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label>Método de Pago</label>
@@ -78,17 +104,6 @@
             <option value="TARJETA">💳 Tarjeta</option>
             <option value="TRANSFERENCIA">📲 Transferencia</option>
           </select>
-        </div>
-      </div>
-      <div class="toggle-row">
-        <input type="checkbox" id="chk-nuevo-cli" onchange="toggleNuevoCli(this)">
-        <label for="chk-nuevo-cli">✚ El cliente no existe — ingresar datos nuevos</label>
-      </div>
-      <div class="cliente-nuevo-section" id="nuevo-cli-form">
-        <p class="section-label">Datos del nuevo cliente</p>
-        <div class="form-grid-2">
-          <div class="form-group"><label>Nombre completo *</label><input type="text" id="nc-nombre" class="form-control" placeholder="Juan Pérez"></div>
-          <div class="form-group"><label>NIT / CI</label><input type="text" id="nc-nit" class="form-control" placeholder="12345678"></div>
         </div>
       </div>
       <h4 style="margin:20px 0 10px;font-size:.9rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.5px">Productos del pedido</h4>
@@ -142,33 +157,96 @@
 </div>
 
 <div id="app-toast" class="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/api.js"></script>
 <script>
   const usuarioActual = checkAuth([1, 4]);
   if (usuarioActual) renderUserInfo();
 
-  let _productos = [], _clientes = [], _totalVenta = 0;
+  const EMPRESA = {
+    nombre:    'Café Aurora S.R.L.',
+    nit:       '1023456789',
+    direccion: 'Av. Siempre Viva 742, Cochabamba',
+    telefono:  '+591 4 456-7890',
+    email:     'aurora@cafecorreo.com'
+  };
+
+  let _productos = [], _totalVenta = 0;
+  let _clienteId = null, _clienteNombre = null, _clienteNit = null;
+  let _searchTimer = null;
 
   async function init() {
-    const [rP, rC] = await Promise.all([apiFetch('/producto/'), apiFetch('/cliente/')]);
+    const rP = await apiFetch('/producto/');
     if (rP) _productos = (await rP.json()).filter(p => p.activo !== false);
-    if (rC) { _clientes = await rC.json(); poblarSelectCliente(); }
     cargarVentas();
   }
 
-  function poblarSelectCliente() {
-    const sel = document.getElementById('f-cliente');
-    sel.innerHTML = '<option value="">Cliente general (sin nombre)</option>';
-    _clientes.forEach(c => sel.innerHTML += `<option value="${c.id_cliente}">${esc(c.nombre)}${c.nit ? ' — NIT '+esc(c.nit) : ''}</option>`);
+  function onCliSearch() {
+    clearTimeout(_searchTimer);
+    const q = document.getElementById('cli-search').value.trim();
+    if (q.length < 2) { cerrarDropdown(); return; }
+    _searchTimer = setTimeout(() => buscarClientes(q), 300);
   }
 
-  function toggleNuevoCli(chk) {
-    const panel = document.getElementById('nuevo-cli-form');
-    const bloque = document.getElementById('bloque-sel-cliente');
-    if (chk.checked) { panel.classList.add('visible'); bloque.style.opacity = '0.35'; bloque.querySelector('select').disabled = true; }
-    else { panel.classList.remove('visible'); bloque.style.opacity = '1'; bloque.querySelector('select').disabled = false; }
+  function onCliSearchFocus() {
+    const q = document.getElementById('cli-search').value.trim();
+    if (q.length >= 2) buscarClientes(q);
   }
+
+  async function buscarClientes(q) {
+    const res = await apiFetch(`/cliente/buscar?q=${encodeURIComponent(q)}`);
+    if (!res) return;
+    mostrarDropdown(await res.json(), q);
+  }
+
+  function mostrarDropdown(clientes, q) {
+    const dd = document.getElementById('cli-dropdown');
+    if (!clientes.length) {
+      dd.innerHTML = `<div class="cli-option" onclick="usarClienteNuevo()"><strong>➕ Registrar nuevo cliente</strong><br><small>CI/NIT: "${esc(q)}" — completar datos abajo</small></div>`;
+      if (/^\d+$/.test(q)) document.getElementById('nc-nit').value = q;
+    } else {
+      dd.innerHTML = clientes.map(c => `<div class="cli-option" onclick="seleccionarCliente(${c.id_cliente}, '${esc(c.nombre)}', '${esc(c.nit||'')}')"><strong>${esc(c.nombre)}</strong><br><small>CI/NIT: ${esc(c.nit||'—')}</small></div>`).join('') +
+        `<div class="cli-option" onclick="usarClienteNuevo()"><small>➕ No aparece — registrar nuevo</small></div>`;
+    }
+    dd.classList.add('open');
+  }
+
+  function cerrarDropdown() { document.getElementById('cli-dropdown').classList.remove('open'); }
+
+  function seleccionarCliente(id, nombre, nit) {
+    _clienteId = id; _clienteNombre = nombre; _clienteNit = nit;
+    mostrarBadge(nombre, nit);
+    document.getElementById('cli-search').value = '';
+    document.getElementById('nuevo-cli-form').classList.remove('visible');
+    cerrarDropdown();
+  }
+
+  function usarClienteNuevo() {
+    _clienteId = null; _clienteNombre = null; _clienteNit = null;
+    document.getElementById('cli-badge').style.display = 'none';
+    document.getElementById('nuevo-cli-form').classList.add('visible');
+    cerrarDropdown();
+    document.getElementById('nc-nombre').focus();
+  }
+
+  function mostrarBadge(nombre, nit) {
+    document.getElementById('cli-badge-name').textContent = nombre;
+    document.getElementById('cli-badge-nit').textContent = nit ? `CI/NIT: ${nit}` : '';
+    document.getElementById('cli-badge').style.display = 'flex';
+  }
+
+  function limpiarCliente() {
+    _clienteId = null; _clienteNombre = null; _clienteNit = null;
+    document.getElementById('cli-badge').style.display = 'none';
+    document.getElementById('cli-search').value = '';
+    document.getElementById('cli-search').focus();
+    document.getElementById('nuevo-cli-form').classList.remove('visible');
+    ['nc-nombre','nc-nit'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  document.addEventListener('click', e => { if (!e.target.closest('.cli-search-wrap')) cerrarDropdown(); });
 
   async function cargarVentas() {
     document.getElementById('tbody-ventas').innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">🍽️</span>Cargando...</td></tr>';
@@ -241,12 +319,14 @@
       const id_producto = parseInt(row.querySelector('.prod-sel').value);
       const cantidad = parseInt(row.querySelector('.cant').value);
       const precio_unitario = parseFloat(row.querySelector('.precio-cell').textContent.replace('Bs ', ''));
-      if (id_producto && cantidad > 0) detalles.push({ id_producto, cantidad, precio_unitario });
+      const descripcion = row.querySelector('.prod-sel').options[row.querySelector('.prod-sel').selectedIndex]?.text.split(' (')[0] || '';
+      if (id_producto && cantidad > 0) detalles.push({ id_producto, cantidad, precio_unitario, descripcion });
     }
-    const crearNuevoCli = document.getElementById('chk-nuevo-cli').checked;
-    let id_cliente = parseInt(document.getElementById('f-cliente').value) || null;
-    let nombre_cliente = null, nit_cliente = null;
-    if (crearNuevoCli) {
+    let id_cliente = _clienteId || null;
+    let nombre_cliente = _clienteNombre || null;
+    let nit_cliente = _clienteNit || null;
+    const esNuevo = document.getElementById('nuevo-cli-form').classList.contains('visible');
+    if (esNuevo) {
       nombre_cliente = document.getElementById('nc-nombre').value.trim();
       nit_cliente = document.getElementById('nc-nit').value.trim() || null;
       if (!nombre_cliente) { mostrarToast('El nombre del cliente es requerido', 'error'); btn.disabled = false; btn.textContent = '✓ Confirmar Pedido'; return; }
@@ -258,13 +338,71 @@
     if (!res) return;
     if (res.ok) {
       const data = await res.json();
+      const cliNombre = data.nombre_cliente || nombre_cliente || 'Cliente General';
+      const cliNit    = data.nit_cliente    || nit_cliente    || null;
       mostrarToast(`✅ Pedido #${data.id_venta} registrado — Total: ${formatBs(data.total)}`);
       cerrarModal('modal-pago'); cerrarModal('modal-venta');
-      document.getElementById('cart-body').innerHTML = '';
-      document.getElementById('chk-nuevo-cli').checked = false; toggleNuevoCli({ checked: false });
+      generarFacturaPDF(data.id_venta, cliNombre, cliNit, detalles, data.total, body.metodo_pago);
+      limpiarCliente();
       ['nc-nombre','nc-nit'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('nuevo-cli-form').classList.remove('visible');
+      document.getElementById('cart-body').innerHTML = '';
       calcTotal(); cargarVentas();
     } else { const e = await res.json().catch(() => ({})); mostrarToast(e.detail || 'Error al registrar', 'error'); }
+  }
+
+  function generarFacturaPDF(idVenta, cliNombre, cliNit, detalles, total, metodoPago) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const MARGEN = 18, ANCHO = 210 - MARGEN * 2;
+    let y = MARGEN;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(30,30,30);
+    doc.text(EMPRESA.nombre, MARGEN, y); y += 7;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90);
+    doc.text(`NIT: ${EMPRESA.nit}`, MARGEN, y); y += 5;
+    doc.text(`Dirección: ${EMPRESA.direccion}`, MARGEN, y); y += 5;
+    doc.text(`Contacto: ${EMPRESA.telefono}  |  ${EMPRESA.email}`, MARGEN, y); y += 8;
+    doc.setDrawColor(200,200,200); doc.setLineWidth(0.4); doc.line(MARGEN, y, MARGEN+ANCHO, y); y += 6;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(30,30,30);
+    doc.text(`FACTURA  N°${String(idVenta).padStart(6,'0')}`, MARGEN, y); y += 6;
+    const ahora = new Date();
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90);
+    doc.text(`Fecha: ${ahora.toLocaleDateString('es-BO',{day:'2-digit',month:'2-digit',year:'numeric'})}  Hora: ${ahora.toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit'})}`, MARGEN, y);
+    doc.text(`Método de Pago: ${metodoPago}`, MARGEN+ANCHO, y, {align:'right'}); y += 8;
+
+    doc.setFillColor(245,245,245); doc.roundedRect(MARGEN, y, ANCHO, 18, 2, 2, 'F'); y += 5;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(30,30,30);
+    doc.text('DATOS DEL CLIENTE', MARGEN+4, y); y += 5;
+    doc.setFont('helvetica','normal');
+    doc.text(`Nombre / Razón Social: ${cliNombre || 'Cliente General'}`, MARGEN+4, y); y += 5;
+    doc.text(`CI / NIT: ${cliNit || 'S/N'}`, MARGEN+4, y); y += 10;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text('DETALLE DE VENTA', MARGEN, y); y += 4;
+    doc.autoTable({
+      startY: y, margin: {left: MARGEN, right: MARGEN},
+      head: [['Descripción','Cant.','Precio Unit.','Subtotal']],
+      body: detalles.map(d => [d.descripcion || `Producto #${d.id_producto}`, d.cantidad, `Bs ${parseFloat(d.precio_unitario).toFixed(2)}`, `Bs ${(d.cantidad*d.precio_unitario).toFixed(2)}`]),
+      styles: {fontSize:9, cellPadding:3, textColor:[30,30,30]},
+      headStyles: {fillColor:[40,40,40], textColor:255, fontStyle:'bold'},
+      columnStyles: {0:{cellWidth:'auto'}, 1:{halign:'center',cellWidth:16}, 2:{halign:'right',cellWidth:30}, 3:{halign:'right',cellWidth:30}},
+      alternateRowStyles: {fillColor:[249,249,249]},
+      tableLineColor:[220,220,220], tableLineWidth:0.2
+    });
+    y = doc.lastAutoTable.finalY + 6;
+
+    const subtotal = detalles.reduce((s,d) => s + d.cantidad*d.precio_unitario, 0);
+    const xDer = MARGEN + ANCHO;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90);
+    doc.text('Subtotal:', xDer-40, y); doc.text(`Bs ${subtotal.toFixed(2)}`, xDer, y, {align:'right'}); y += 5;
+    doc.setDrawColor(180,180,180); doc.line(xDer-60, y, xDer, y); y += 4;
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(30,30,30);
+    doc.text('TOTAL:', xDer-40, y); doc.text(`Bs ${parseFloat(total).toFixed(2)}`, xDer, y, {align:'right'}); y += 10;
+    doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(150,150,150);
+    doc.text('Gracias por su preferencia — Café Aurora S.R.L.', 105, y, {align:'center'});
+
+    doc.save(`factura-${String(idVenta).padStart(6,'0')}.pdf`);
   }
 
   init();

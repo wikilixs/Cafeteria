@@ -29,6 +29,29 @@ async def listar(conn=Depends(get_conexion)):
         raise HTTPException(status_code=400, detail="Ocurrió un error, consulte con su Administrador")
     
 
+@router.get("/buscar")
+async def buscar_cliente(q: str = "", conn=Depends(get_conexion)):
+    """
+    Busca clientes por NIT/CI o nombre (búsqueda parcial, case-insensitive).
+    Devuelve máximo 10 resultados.
+    """
+    consulta = """
+        SELECT id_cliente, nombre, nit
+        FROM cliente
+        WHERE activo = TRUE
+          AND (nit ILIKE %s OR nombre ILIKE %s)
+        ORDER BY nombre
+        LIMIT 10;
+    """
+    try:
+        patron = f"%{q}%"
+        async with conn.cursor() as cursor:
+            await cursor.execute(consulta, (patron, patron))
+            return await cursor.fetchall()
+    except Exception as e:
+        print(f"Error al buscar cliente: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error al buscar clientes")
+
 @router.get("/{id_cliente}")
 async def obtener(id_cliente: int, conn=Depends(get_conexion)):
     consulta = """

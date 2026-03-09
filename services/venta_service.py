@@ -122,6 +122,8 @@ async def registrar_venta(conn, id_usuario, id_cliente, id_estado, metodo_pago, 
         return {
             "id_venta": id_venta,
             "id_cliente": id_cliente_final,
+            "nombre_cliente": nombre_cliente,
+            "nit_cliente": nit_cliente,
             "total": float(total)
         }
 

@@ -111,7 +111,47 @@ async def reporte_ventas(fecha_inicio: Optional[str] = None, fecha_fin: Optional
         print(f"Error en reporte de ventas: {e}")
         raise HTTPException(status_code=400, detail="Error al generar reporte")
     
+@router.get("/{id_venta}/factura")
+async def obtener_factura(id_venta: int, conn=Depends(get_conexion)):
+    """
+    Devuelve todos los datos necesarios para generar la factura PDF de una venta.
+    """
+    consulta = """
+        SELECT
+            v.id_venta,
+            v.fecha,
+            v.metodo_pago,
+            c.nombre  AS cliente_nombre,
+            c.nit     AS cliente_nit,
+            ev.nombre AS estado,
+            p.nombre  AS producto,
+            dv.cantidad,
+            dv.precio_unitario,
+            (dv.cantidad * dv.precio_unitario) AS subtotal,
+            SUM(dv.cantidad * dv.precio_unitario) OVER (PARTITION BY v.id_venta) AS total
+        FROM venta v
+        LEFT JOIN cliente c   ON v.id_cliente  = c.id_cliente
+        LEFT JOIN estado_venta ev ON v.id_estado = ev.id_estado
+        LEFT JOIN detalle_venta dv ON v.id_venta = dv.id_venta
+        LEFT JOIN producto p  ON dv.id_producto = p.id_producto
+        WHERE v.id_venta = %s
+        ORDER BY dv.id_detalle_venta;
+    """
+    try:
+        async with conn.cursor() as cursor:
+            await cursor.execute(consulta, (id_venta,))
+            rows = await cursor.fetchall()
+            if not rows:
+                raise HTTPException(status_code=404, detail="Venta no encontrada")
+            return rows
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error al obtener factura: {e}")
+        raise HTTPException(status_code=400, detail="Ocurrió un error al obtener la factura")
+
 @router.get("/{id_venta}")
+
 async def obtener(id_venta: int, conn=Depends(get_conexion)):
     consulta = """
         SELECT * FROM venta WHERE id_venta = %s;

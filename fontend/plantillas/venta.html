@@ -8,68 +8,49 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="../css/styles.css">
   <style>
+    /* Buscador de cliente */
+    .cli-search-wrap { position: relative; }
+    .cli-dropdown {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); box-shadow: 0 8px 24px rgba(0,0,0,.35);
+      max-height: 200px; overflow-y: auto; display: none;
+    }
+    .cli-dropdown.open { display: block; }
+    .cli-option {
+      padding: 9px 14px; cursor: pointer; font-size: .88rem;
+      border-bottom: 1px solid var(--color-border); transition: background .15s;
+    }
+    .cli-option:last-child { border-bottom: none; }
+    .cli-option:hover, .cli-option.selected { background: rgba(var(--color-primary-rgb),.15); }
+    .cli-option small { color: var(--color-text-muted); font-size: .78rem; }
+    .cli-badge {
+      display: flex; align-items: center; gap: 8px; margin-top: 8px;
+      background: rgba(var(--color-primary-rgb),.1); border: 1px solid rgba(var(--color-primary-rgb),.25);
+      border-radius: var(--radius-sm); padding: 7px 12px; font-size: .85rem;
+    }
+    .cli-badge .cli-badge-name { font-weight: 600; color: var(--color-text); }
+    .cli-badge .cli-badge-nit { color: var(--color-text-muted); font-size: .8rem; }
+    .cli-badge .cli-badge-clear { margin-left: auto; cursor: pointer; color: var(--color-error); font-size: 1rem; line-height:1; }
+    /* Nuevo cliente */
     .cliente-nuevo-section {
-      background: var(--color-surface-2);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      padding: 14px;
-      margin-top: 8px;
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      animation: fadeUp 0.25s ease;
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); padding: 14px; margin-top: 8px;
+      display: none; flex-direction: column; gap: 10px; animation: fadeUp 0.25s ease;
     }
     .cliente-nuevo-section.visible { display: flex; }
-    .cliente-nuevo-section .form-grid-2 { gap: 10px; }
     .cliente-nuevo-section .form-group { margin-bottom: 0; }
-    .toggle-row {
-      display: flex; align-items: center; gap: 8px; margin-top: 4px;
-    }
-    .toggle-row label {
-      font-size: 0.83rem; color: var(--color-text-muted); cursor: pointer;
-      text-transform: none; letter-spacing: 0; font-weight: 400;
-    }
-    .toggle-row input[type="checkbox"] {
-      accent-color: var(--color-primary); width: 16px; height: 16px; cursor: pointer;
-    }
     /* Modal pago */
     .pay-confirm-body { text-align: center; padding: 8px 0; }
-    .pay-total-display {
-      font-size: 2.4rem; font-weight: 700; color: var(--color-primary);
-      margin: 12px 0 20px;
-    }
-    .pay-input-row {
-      display: flex; align-items: center; gap: 12px; justify-content: center;
-      margin-bottom: 16px;
-    }
-    .pay-input-row input {
-      font-size: 1.6rem; font-weight: 700; width: 180px; text-align: center;
-      background: var(--color-surface-2); border: 2px solid var(--color-primary);
-      border-radius: var(--radius-sm); color: var(--color-text); padding: 10px;
-      outline: none;
-    }
-    .change-display {
-      background: var(--color-surface-2); border-radius: var(--radius-sm);
-      padding: 14px 20px; margin-bottom: 16px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
+    .pay-total-display { font-size: 2.4rem; font-weight: 700; color: var(--color-primary); margin: 12px 0 20px; }
+    .pay-input-row { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 16px; }
+    .pay-input-row input { font-size: 1.6rem; font-weight: 700; width: 180px; text-align: center; background: var(--color-surface-2); border: 2px solid var(--color-primary); border-radius: var(--radius-sm); color: var(--color-text); padding: 10px; outline: none; }
+    .change-display { background: var(--color-surface-2); border-radius: var(--radius-sm); padding: 14px 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
     .change-display .change-label { color: var(--color-text-muted); font-size: .9rem; }
-    .change-display .change-amount {
-      font-size: 1.5rem; font-weight: 700;
-      color: var(--color-success);
-    }
+    .change-display .change-amount { font-size: 1.5rem; font-weight: 700; color: var(--color-success); }
     .change-display .change-amount.negative { color: var(--color-error); }
-    .pay-method-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3);
-      color: #93c5fd; padding: 4px 14px; border-radius: 20px;
-      font-size: 0.82rem; font-weight: 600; margin-bottom: 16px;
-    }
-    .section-label {
-      font-size: 0.78rem; font-weight: 600; color: var(--color-primary);
-      text-transform: uppercase; letter-spacing: 1px;
-      border-bottom: 1px solid var(--color-border); padding-bottom: 6px; margin-bottom: 0;
-    }
+    .pay-method-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; padding: 4px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; margin-bottom: 16px; }
+    .section-label { font-size: 0.78rem; font-weight: 600; color: var(--color-primary); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--color-border); padding-bottom: 6px; margin-bottom: 0; }
   </style>
 </head>
 <body class="page-wrapper">
@@ -88,7 +69,6 @@
     <button class="btn btn-primary" onclick="abrirModal('modal-venta')">+ Nueva venta</button>
   </div>
 
-  <!-- Tabla ventas recientes -->
   <div class="table-wrapper">
     <div class="table-toolbar">
       <span style="font-size:.85rem;color:var(--color-text-muted)">Ventas recientes (últimos 7 días)</span>
@@ -113,9 +93,33 @@
       <!-- Sección cliente -->
       <p class="section-label">Cliente</p>
       <div class="form-grid-2" style="margin-top:10px">
-        <div class="form-group" id="bloque-sel-cliente">
-          <label>Cliente existente</label>
-          <select id="f-cliente" class="form-control"><option value="">Cliente general (sin nombre)</option></select>
+        <div class="form-group">
+          <label>Buscar por CI / NIT o Nombre</label>
+          <div class="cli-search-wrap">
+            <input type="text" id="cli-search" class="form-control" placeholder="Ej: 12345678 o Juan Pérez" autocomplete="off" oninput="onCliSearch()" onfocus="onCliSearchFocus()">
+            <div class="cli-dropdown" id="cli-dropdown"></div>
+          </div>
+          <!-- Badge cliente seleccionado -->
+          <div class="cli-badge" id="cli-badge" style="display:none">
+            <span>👤</span>
+            <span class="cli-badge-name" id="cli-badge-name"></span>
+            <span class="cli-badge-nit" id="cli-badge-nit"></span>
+            <span class="cli-badge-clear" onclick="limpiarCliente()" title="Cambiar cliente">✕</span>
+          </div>
+          <!-- Formulario cliente nuevo -->
+          <div class="cliente-nuevo-section" id="nuevo-cli-form">
+            <p class="section-label" style="margin-bottom:4px">Datos del nuevo cliente</p>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Nombre / Razón Social *</label>
+                <input type="text" id="nc-nombre" class="form-control" placeholder="Ej: Juan Pérez o Mi Empresa S.A.">
+              </div>
+              <div class="form-group">
+                <label>CI / NIT (para factura)</label>
+                <input type="text" id="nc-nit" class="form-control" placeholder="12345678">
+              </div>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label>Método de Pago</label>
@@ -124,26 +128,6 @@
             <option value="TARJETA">💳 Tarjeta</option>
             <option value="TRANSFERENCIA">📲 Transferencia</option>
           </select>
-        </div>
-      </div>
-
-      <!-- Toggle crear cliente nuevo -->
-      <div class="toggle-row">
-        <input type="checkbox" id="chk-nuevo-cli" onchange="toggleNuevoCli(this)">
-        <label for="chk-nuevo-cli">✚ El cliente no existe — ingresar datos nuevos</label>
-      </div>
-
-      <div class="cliente-nuevo-section" id="nuevo-cli-form">
-        <p class="section-label">Datos del nuevo cliente</p>
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label>Nombre completo *</label>
-            <input type="text" id="nc-nombre" class="form-control" placeholder="Juan Pérez">
-          </div>
-          <div class="form-group">
-            <label>NIT / CI (para factura)</label>
-            <input type="text" id="nc-nit" class="form-control" placeholder="12345678">
-          </div>
         </div>
       </div>
 
@@ -156,7 +140,6 @@
         </table>
       </div>
       <button class="btn btn-secondary btn-sm" onclick="agregarFila()" style="margin-top:10px">+ Agregar producto</button>
-
       <div class="cart-total">Total: <span class="total-amount" id="total-amount">Bs 0.00</span></div>
     </div>
     <div class="modal-footer">
@@ -178,7 +161,6 @@
       <div class="pay-total-display" id="pay-total-display">Bs 0.00</div>
       <div class="pay-method-badge" id="pay-method-badge">💵 Efectivo</div>
 
-      <!-- Input monto (solo efectivo) -->
       <div id="efectivo-section">
         <p style="color:var(--color-text-muted);font-size:.88rem;margin-bottom:10px">Monto recibido del cliente (Bs)</p>
         <div class="pay-input-row">
@@ -190,7 +172,6 @@
         </div>
       </div>
 
-      <!-- Mensaje para tarjeta/transferencia -->
       <div id="digital-section" style="display:none">
         <p style="color:var(--color-text-muted);margin-bottom:16px;font-size:.9rem">
           Confirma que el pago digital fue recibido correctamente antes de registrar la venta.
@@ -208,48 +189,121 @@
 </div>
 
 <div id="app-toast" class="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/api.js"></script>
 <script>
   const usuarioActual = checkAuth([1, 2]);
   if (usuarioActual) renderUserInfo();
 
-  let _productos = [], _clientes = [], _totalVenta = 0;
+  // ── Constantes empresa ──────────────────────────────────────────
+  const EMPRESA = {
+    nombre:    'Café Aurora S.R.L.',
+    nit:       '1023456789',
+    direccion: 'Av. Siempre Viva 742, Cochabamba',
+    telefono:  '+591 4 456-7890',
+    email:     'aurora@cafecorreo.com'
+  };
+
+  // ── Estado global ───────────────────────────────────────────────
+  let _productos = [], _totalVenta = 0;
+  let _clienteId = null, _clienteNombre = null, _clienteNit = null;
+  let _searchTimer = null;
 
   async function init() {
-    const [rP, rC] = await Promise.all([apiFetch('/producto/'), apiFetch('/cliente/')]);
+    const rP = await apiFetch('/producto/');
     if (rP) _productos = (await rP.json()).filter(p => p.activo !== false);
-    if (rC) {
-      _clientes = await rC.json();
-      poblarSelectCliente();
-    }
     cargarVentas();
   }
 
-  function poblarSelectCliente() {
-    const sel = document.getElementById('f-cliente');
-    sel.innerHTML = '<option value="">Cliente general (sin nombre)</option>';
-    _clientes.forEach(c => sel.innerHTML += `<option value="${c.id_cliente}">${esc(c.nombre)}${c.nit ? ' — NIT '+esc(c.nit) : ''}</option>`);
+  // ── Búsqueda de cliente ─────────────────────────────────────────
+  function onCliSearch() {
+    clearTimeout(_searchTimer);
+    const q = document.getElementById('cli-search').value.trim();
+    if (q.length < 2) { cerrarDropdown(); return; }
+    _searchTimer = setTimeout(() => buscarClientes(q), 300);
   }
 
-  function toggleNuevoCli(chk) {
-    const panel = document.getElementById('nuevo-cli-form');
-    const selBloque = document.getElementById('bloque-sel-cliente');
-    if (chk.checked) {
-      panel.classList.add('visible');
-      selBloque.style.opacity = '0.35';
-      selBloque.querySelector('select').disabled = true;
+  function onCliSearchFocus() {
+    const q = document.getElementById('cli-search').value.trim();
+    if (q.length >= 2) buscarClientes(q);
+  }
+
+  async function buscarClientes(q) {
+    const res = await apiFetch(`/cliente/buscar?q=${encodeURIComponent(q)}`);
+    if (!res) return;
+    const data = await res.json();
+    mostrarDropdown(data, q);
+  }
+
+  function mostrarDropdown(clientes, q) {
+    const dd = document.getElementById('cli-dropdown');
+    if (!clientes.length) {
+      dd.innerHTML = `
+        <div class="cli-option" onclick="usarClienteNuevo()">
+          <strong>➕ Registrar nuevo cliente</strong><br>
+          <small>CI/NIT: "${esc(q)}" — completar datos abajo</small>
+        </div>`;
+      // pre-llenar si parece un CI/NIT (solo números)
+      if (/^\d+$/.test(q)) document.getElementById('nc-nit').value = q;
     } else {
-      panel.classList.remove('visible');
-      selBloque.style.opacity = '1';
-      selBloque.querySelector('select').disabled = false;
+      dd.innerHTML = clientes.map(c => `
+        <div class="cli-option" onclick="seleccionarCliente(${c.id_cliente}, '${esc(c.nombre)}', '${esc(c.nit||'')}')">
+          <strong>${esc(c.nombre)}</strong><br>
+          <small>CI/NIT: ${esc(c.nit || '—')}</small>
+        </div>`).join('') +
+        `<div class="cli-option" onclick="usarClienteNuevo()">
+          <small>➕ No aparece en la lista — registrar nuevo</small>
+        </div>`;
     }
+    dd.classList.add('open');
   }
 
+  function cerrarDropdown() {
+    document.getElementById('cli-dropdown').classList.remove('open');
+  }
+
+  function seleccionarCliente(id, nombre, nit) {
+    _clienteId = id; _clienteNombre = nombre; _clienteNit = nit;
+    mostrarBadge(nombre, nit);
+    document.getElementById('cli-search').value = '';
+    document.getElementById('nuevo-cli-form').classList.remove('visible');
+    cerrarDropdown();
+  }
+
+  function usarClienteNuevo() {
+    _clienteId = null; _clienteNombre = null; _clienteNit = null;
+    document.getElementById('cli-badge').style.display = 'none';
+    document.getElementById('nuevo-cli-form').classList.add('visible');
+    cerrarDropdown();
+    document.getElementById('nc-nombre').focus();
+  }
+
+  function mostrarBadge(nombre, nit) {
+    document.getElementById('cli-badge-name').textContent = nombre;
+    document.getElementById('cli-badge-nit').textContent = nit ? `CI/NIT: ${nit}` : '';
+    document.getElementById('cli-badge').style.display = 'flex';
+  }
+
+  function limpiarCliente() {
+    _clienteId = null; _clienteNombre = null; _clienteNit = null;
+    document.getElementById('cli-badge').style.display = 'none';
+    document.getElementById('cli-search').value = '';
+    document.getElementById('cli-search').focus();
+    document.getElementById('nuevo-cli-form').classList.remove('visible');
+    ['nc-nombre', 'nc-nit'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  // Cerrar dropdown al hacer clic fuera
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.cli-search-wrap')) cerrarDropdown();
+  });
+
+  // ── Tabla ventas ────────────────────────────────────────────────
   async function cargarVentas() {
     document.getElementById('tbody-ventas').innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">🛒</span>Cargando...</td></tr>';
-    const hoy = new Date();
-    const hace7 = new Date(); hace7.setDate(hace7.getDate() - 7);
+    const hoy = new Date(); const hace7 = new Date(); hace7.setDate(hace7.getDate() - 7);
     const url = `/venta/reporte/detallado?fecha_inicio=${hace7.toISOString().split('T')[0]}&fecha_fin=${hoy.toISOString().split('T')[0]}`;
     const res = await apiFetch(url);
     if (!res) return;
@@ -274,6 +328,7 @@
       </tr>`).join('');
   }
 
+  // ── Carrito ─────────────────────────────────────────────────────
   function agregarFila() {
     const tbody = document.getElementById('cart-body');
     const row = document.createElement('tr');
@@ -292,8 +347,7 @@
   function actualizarFila(el) {
     const row = el.closest('tr');
     const sel = row.querySelector('.prod-sel');
-    const opt = sel.options[sel.selectedIndex];
-    const precio = parseFloat(opt.getAttribute('data-precio')) || 0;
+    const precio = parseFloat(sel.options[sel.selectedIndex].getAttribute('data-precio')) || 0;
     const cant = parseInt(row.querySelector('.cant').value) || 1;
     row.querySelector('.precio-cell').textContent = formatBs(precio);
     row.querySelector('.sub-cell').textContent = formatBs(precio * cant);
@@ -302,44 +356,34 @@
 
   function calcTotal() {
     let total = 0;
-    document.querySelectorAll('#cart-body .sub-cell').forEach(td => {
-      total += parseFloat(td.textContent.replace('Bs ', '')) || 0;
-    });
+    document.querySelectorAll('#cart-body .sub-cell').forEach(td => { total += parseFloat(td.textContent.replace('Bs ', '')) || 0; });
     _totalVenta = total;
     document.getElementById('total-amount').textContent = formatBs(total);
   }
 
-  function onPagoChange() {
-    // no hace nada hasta abrir modal pago
-  }
+  // ── Modal pago ──────────────────────────────────────────────────
+  function onPagoChange() {}
 
   function abrirPago() {
-    const filas = [...document.querySelectorAll('#cart-body tr')];
-    const hayProductos = filas.some(row => row.querySelector('.prod-sel')?.value);
+    const hayProductos = [...document.querySelectorAll('#cart-body tr')].some(r => r.querySelector('.prod-sel')?.value);
     if (!hayProductos) { mostrarToast('Agrega al menos un producto', 'error'); return; }
     if (_totalVenta <= 0) { mostrarToast('El total debe ser mayor a Bs 0', 'error'); return; }
-
     const metodo = document.getElementById('f-pago').value;
     const icons = { EFECTIVO: '💵', TARJETA: '💳', TRANSFERENCIA: '📲' };
     const labels = { EFECTIVO: 'Efectivo', TARJETA: 'Tarjeta', TRANSFERENCIA: 'Transferencia' };
     document.getElementById('pay-total-display').textContent = formatBs(_totalVenta);
-    document.getElementById('pay-method-badge').textContent = `${icons[metodo] || '💰'} ${labels[metodo] || metodo}`;
+    document.getElementById('pay-method-badge').textContent = `${icons[metodo]||'💰'} ${labels[metodo]||metodo}`;
     document.getElementById('digital-monto').textContent = formatBs(_totalVenta);
-
     const esEfectivo = metodo === 'EFECTIVO';
     document.getElementById('efectivo-section').style.display = esEfectivo ? '' : 'none';
     document.getElementById('digital-section').style.display = esEfectivo ? 'none' : '';
-
     const btnConf = document.getElementById('btn-confirmar-pago');
     if (esEfectivo) {
       document.getElementById('monto-recibido').value = '';
       document.getElementById('vuelto-display').textContent = 'Bs 0.00';
       document.getElementById('vuelto-display').className = 'change-amount';
       btnConf.disabled = true;
-    } else {
-      btnConf.disabled = false;
-    }
-
+    } else { btnConf.disabled = false; }
     abrirModal('modal-pago');
   }
 
@@ -352,34 +396,36 @@
     document.getElementById('btn-confirmar-pago').disabled = recibido < _totalVenta;
   }
 
+  // ── Registrar venta ─────────────────────────────────────────────
   async function registrarVenta() {
     const btn = document.getElementById('btn-confirmar-pago');
-    btn.disabled = true;
-    btn.textContent = 'Registrando...';
+    btn.disabled = true; btn.textContent = 'Registrando...';
 
+    // Armar detalles del carrito
     const filas = [...document.querySelectorAll('#cart-body tr')];
     const detalles = [];
     for (const row of filas) {
       const id_producto = parseInt(row.querySelector('.prod-sel').value);
-      const cantidad = parseInt(row.querySelector('.cant').value);
-      const precio_unitario = parseFloat(row.querySelector('.precio-cell').textContent.replace('Bs ',''));
-      if (id_producto && cantidad > 0) detalles.push({ id_producto, cantidad, precio_unitario });
+      const cantidad    = parseInt(row.querySelector('.cant').value);
+      const precio_unitario = parseFloat(row.querySelector('.precio-cell').textContent.replace('Bs ', ''));
+      const descripcion = row.querySelector('.prod-sel').options[row.querySelector('.prod-sel').selectedIndex]?.text.split(' (')[0] || '';
+      if (id_producto && cantidad > 0) detalles.push({ id_producto, cantidad, precio_unitario, descripcion });
     }
 
-    const metodo_pago = document.getElementById('f-pago').value;
-    const crearNuevoCli = document.getElementById('chk-nuevo-cli').checked;
-    let id_cliente = parseInt(document.getElementById('f-cliente').value) || null;
-    let nombre_cliente = null, nit_cliente = null;
+    // Resolver cliente
+    let id_cliente = _clienteId || null;
+    let nombre_cliente = _clienteNombre || null;
+    let nit_cliente = _clienteNit || null;
 
-    if (crearNuevoCli) {
+    const esNuevo = document.getElementById('nuevo-cli-form').classList.contains('visible');
+    if (esNuevo) {
       nombre_cliente = document.getElementById('nc-nombre').value.trim();
-      nit_cliente = document.getElementById('nc-nit').value.trim() || null;
+      nit_cliente    = document.getElementById('nc-nit').value.trim() || null;
       if (!nombre_cliente) {
         mostrarToast('El nombre del cliente es requerido', 'error');
-        btn.disabled = false; btn.textContent = '✓ Confirmar y Registrar';
-        return;
+        btn.disabled = false; btn.textContent = '✓ Confirmar y Registrar'; return;
       }
-      id_cliente = null; // backend creará el cliente
+      id_cliente = null;
     }
 
     const body = {
@@ -388,35 +434,151 @@
       nombre_cliente,
       nit_cliente,
       id_estado: 1,
-      metodo_pago,
+      metodo_pago: document.getElementById('f-pago').value,
       detalles
     };
 
     const res = await apiFetch('/venta/', { method: 'POST', body: JSON.stringify(body) });
-    btn.textContent = '✓ Confirmar y Registrar';
-    btn.disabled = false;
+    btn.textContent = '✓ Confirmar y Registrar'; btn.disabled = false;
     if (!res) return;
+
     if (res.ok) {
       const data = await res.json();
+
+      // Nombre/NIT definitivos (puede haberlo retornado el backend)
+      const cliNombre = data.nombre_cliente || nombre_cliente || 'Cliente General';
+      const cliNit    = data.nit_cliente    || nit_cliente    || null;
+
       mostrarToast(`✅ Venta #${data.id_venta} registrada — Total: ${formatBs(data.total)}`);
-      cerrarModal('modal-pago');
-      cerrarModal('modal-venta');
+      cerrarModal('modal-pago'); cerrarModal('modal-venta');
+
+      // Generar PDF
+      generarFacturaPDF(data.id_venta, cliNombre, cliNit, detalles, data.total, body.metodo_pago);
+
       // Limpiar
-      document.getElementById('cart-body').innerHTML = '';
-      document.getElementById('chk-nuevo-cli').checked = false;
-      toggleNuevoCli({ checked: false });
+      limpiarCliente();
       ['nc-nombre','nc-nit'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('nuevo-cli-form').classList.remove('visible');
+      document.getElementById('cart-body').innerHTML = '';
       calcTotal();
-      // Si se creó un cliente, actualizarlo en el select
-      if (crearNuevoCli && data.id_cliente) {
-        _clientes.push({ id_cliente: data.id_cliente, nombre: nombre_cliente, nit: nit_cliente });
-        poblarSelectCliente();
-      }
       cargarVentas();
     } else {
       const e = await res.json().catch(() => ({}));
       mostrarToast(e.detail || 'Error al registrar venta', 'error');
     }
+  }
+
+  // ── Generación de factura PDF ───────────────────────────────────
+  function generarFacturaPDF(idVenta, cliNombre, cliNit, detalles, total, metodoPago) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+    const MARGEN = 18;
+    const ANCHO  = 210 - MARGEN * 2;
+    let y = MARGEN;
+
+    // ── ENCABEZADO EMPRESA ─────────────────────────────────────────
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(30, 30, 30);
+    doc.text(EMPRESA.nombre, MARGEN, y);
+    y += 7;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(90, 90, 90);
+    doc.text(`NIT: ${EMPRESA.nit}`, MARGEN, y); y += 5;
+    doc.text(`Dirección: ${EMPRESA.direccion}`, MARGEN, y); y += 5;
+    doc.text(`Contacto: ${EMPRESA.telefono}  |  ${EMPRESA.email}`, MARGEN, y); y += 8;
+
+    // Línea separadora
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.4);
+    doc.line(MARGEN, y, MARGEN + ANCHO, y); y += 6;
+
+    // ── DATOS FACTURA ──────────────────────────────────────────────
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(30, 30, 30);
+    doc.text(`FACTURA  N°${String(idVenta).padStart(6, '0')}`, MARGEN, y); y += 6;
+
+    const ahora = new Date();
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(90, 90, 90);
+    doc.text(`Fecha: ${ahora.toLocaleDateString('es-BO', { day:'2-digit', month:'2-digit', year:'numeric' })}  Hora: ${ahora.toLocaleTimeString('es-BO', { hour:'2-digit', minute:'2-digit' })}`, MARGEN, y);
+    doc.text(`Método de Pago: ${metodoPago}`, MARGEN + ANCHO, y, { align: 'right' });
+    y += 8;
+
+    // ── DATOS CLIENTE ──────────────────────────────────────────────
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(MARGEN, y, ANCHO, 18, 2, 2, 'F');
+    y += 5;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(30, 30, 30);
+    doc.text('DATOS DEL CLIENTE', MARGEN + 4, y); y += 5;
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Nombre / Razón Social: ${cliNombre || 'Cliente General'}`, MARGEN + 4, y); y += 5;
+    doc.text(`CI / NIT: ${cliNit || 'S/N'}`, MARGEN + 4, y);
+    y += 10;
+
+    // ── TABLA DE PRODUCTOS ─────────────────────────────────────────
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(30, 30, 30);
+    doc.text('DETALLE DE VENTA', MARGEN, y); y += 4;
+
+    const filas = detalles.map(d => [
+      d.descripcion || `Producto #${d.id_producto}`,
+      d.cantidad,
+      `Bs ${parseFloat(d.precio_unitario).toFixed(2)}`,
+      `Bs ${(d.cantidad * d.precio_unitario).toFixed(2)}`
+    ]);
+
+    doc.autoTable({
+      startY: y,
+      margin: { left: MARGEN, right: MARGEN },
+      head: [['Descripción', 'Cant.', 'Precio Unit.', 'Subtotal']],
+      body: filas,
+      styles: { fontSize: 9, cellPadding: 3, textColor: [30, 30, 30] },
+      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { halign: 'center', cellWidth: 16 },
+        2: { halign: 'right',  cellWidth: 30 },
+        3: { halign: 'right',  cellWidth: 30 }
+      },
+      alternateRowStyles: { fillColor: [249, 249, 249] },
+      tableLineColor: [220, 220, 220],
+      tableLineWidth: 0.2
+    });
+
+    y = doc.lastAutoTable.finalY + 6;
+
+    // Subtotal / Total
+    const subtotal = detalles.reduce((s, d) => s + d.cantidad * d.precio_unitario, 0);
+    const xDer = MARGEN + ANCHO;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(90, 90, 90);
+    doc.text('Subtotal:', xDer - 40, y); doc.text(`Bs ${subtotal.toFixed(2)}`, xDer, y, { align: 'right' }); y += 5;
+
+    doc.setDrawColor(180, 180, 180);
+    doc.line(xDer - 60, y, xDer, y); y += 4;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(30, 30, 30);
+    doc.text('TOTAL:', xDer - 40, y); doc.text(`Bs ${parseFloat(total).toFixed(2)}`, xDer, y, { align: 'right' }); y += 10;
+
+    // Pie
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Gracias por su preferencia — Café Aurora S.R.L.', 105, y, { align: 'center' });
+
+    doc.save(`factura-${String(idVenta).padStart(6, '0')}.pdf`);
   }
 
   init();
