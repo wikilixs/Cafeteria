@@ -6,7 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../css/styles.css">
   <style>
     .modules-grid {
       display: grid;
@@ -50,31 +50,31 @@
   </div>
 
   <div class="modules-grid">
-    <a href="../venta.html" class="module-card">
+    <a href="../plantillas/venta.html" class="module-card">
       <span class="icon">🛒</span><h3>Ventas</h3><p>Registrar y consultar ventas</p>
     </a>
-    <a href="../compra.html" class="module-card">
+    <a href="../plantillas/compra.html" class="module-card">
       <span class="icon">📦</span><h3>Compras</h3><p>Gestionar compras de insumos</p>
     </a>
-    <a href="../personal.html" class="module-card">
+    <a href="../plantillas/personal.html" class="module-card">
       <span class="icon">👥</span><h3>Personal</h3><p>Empleados y usuarios del sistema</p>
     </a>
-    <a href="../productos.html" class="module-card">
+    <a href="../plantillas/productos.html" class="module-card">
       <span class="icon">🍕</span><h3>Productos</h3><p>Catálogo y categorías</p>
     </a>
-    <a href="../insumos.html" class="module-card">
+    <a href="../plantillas/insumos.html" class="module-card">
       <span class="icon">🧂</span><h3>Insumos</h3><p>Stock de materias primas</p>
     </a>
-    <a href="../recetas.html" class="module-card">
+    <a href="../plantillas/recetas.html" class="module-card">
       <span class="icon">📋</span><h3>Recetas</h3><p>Ingredientes e insumos por producto</p>
     </a>
-    <a href="../reportes.html" class="module-card">
+    <a href="../plantillas/reportes.html" class="module-card">
       <span class="icon">📊</span><h3>Reportes</h3><p>Estadísticas y exportación CSV</p>
     </a>
   </div>
 </main>
 
-<script src="../../js/auth.js"></script>
+<script src="../js/auth.js"></script>
 <script>
   const usuario = checkAuth([1]);
   if (usuario) renderUserInfo();

@@ -2,18 +2,18 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cafetería — Cocinero</title>
+  <title>Cafetería — Barista</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../css/styles.css">
   <style>
     .recipes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
     .recipe-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; transition: box-shadow 0.2s; }
     .recipe-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
     .recipe-card-header { background: var(--color-surface-2); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--color-border); }
     .recipe-card-title { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
-    .recipe-card-title .cat-badge { font-size: 0.72rem; font-weight: 400; background: rgba(245,158,11,0.12); color: var(--color-primary); padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(245,158,11,0.2); }
+    .recipe-card-title .cat-badge { font-size: 0.72rem; font-weight: 400; background: rgba(59,130,246,0.12); color: #93c5fd; padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(59,130,246,0.2); }
     .recipe-card-body { padding: 14px 18px; }
     .ingredient-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 0.88rem; }
     .ingredient-row:last-child { border-bottom: none; }
@@ -22,11 +22,17 @@
     .ingredient-actions button { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 4px; font-size: 0.85rem; transition: background 0.15s; color: var(--color-text-muted); }
     .ingredient-actions button:hover { background: var(--color-surface-2); color: var(--color-text); }
     .recipe-card-add { border-top: 1px solid var(--color-border); background: var(--color-surface-2); }
-    .recipe-card-add button { background: none; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-muted); padding: 8px 14px; font-size: 0.82rem; cursor: pointer; width: 100%; margin: 10px; width: calc(100% - 20px); transition: all 0.2s; font-family: var(--font); }
-    .recipe-card-add button:hover { border-color: var(--color-primary); color: var(--color-primary); background: rgba(245,158,11,0.05); }
+    .recipe-card-add button { background: none; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-muted); padding: 8px 14px; font-size: 0.82rem; cursor: pointer; margin: 10px; width: calc(100% - 20px); transition: all 0.2s; font-family: var(--font); }
+    .recipe-card-add button:hover { border-color: #93c5fd; color: #93c5fd; background: rgba(59,130,246,0.05); }
     .empty-recipe { padding: 14px 18px; color: var(--color-text-muted); font-size: 0.85rem; text-align: center; }
     .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
     .filter-bar .table-search { flex: 1; min-width: 200px; }
+    .info-banner {
+      background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25);
+      border-radius: var(--radius); padding: 12px 18px; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.85rem; color: #93c5fd;
+    }
   </style>
 </head>
 <body class="page-wrapper">
@@ -34,24 +40,28 @@
 <nav class="navbar">
   <div class="navbar-brand">
     <span>☕</span> Cafetería
-    <span class="navbar-sep">›</span><span class="navbar-current">Cocinero — Recetas</span>
+    <span class="navbar-sep">›</span><span class="navbar-current">Barista — Bebidas</span>
   </div>
   <div class="navbar-user"><div id="user-info"></div><button class="btn-logout" onclick="logout()">Cerrar sesión</button></div>
 </nav>
 
 <main class="main-content">
   <div class="page-header">
-    <div><h1>Recetas</h1><p>Ingredientes e insumos requeridos para cada producto</p></div>
-    <button class="btn btn-primary" onclick="nuevaReceta()">+ Nueva línea de receta</button>
+    <div><h1>Recetas de Bebidas</h1><p>Ingredientes para las bebidas de la carta</p></div>
+    <button class="btn btn-primary" onclick="nuevaReceta()">+ Agregar ingrediente</button>
+  </div>
+
+  <div class="info-banner">
+    ☕ Solo se muestran productos de las categorías <strong>Bebidas Calientes</strong> y <strong>Bebidas Frías</strong>
   </div>
 
   <div class="filter-bar">
-    <input class="table-search form-control" type="text" id="search-box" placeholder="Buscar producto..." oninput="filtrar()">
+    <input class="table-search form-control" type="text" id="search-box" placeholder="Buscar bebida..." oninput="filtrar()">
     <button class="btn btn-secondary btn-sm" onclick="cargar()">↻ Actualizar</button>
   </div>
 
   <div class="recipes-grid" id="recipes-grid">
-    <p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:40px 0"><span style="font-size:2rem">📋</span><br>Cargando...</p>
+    <p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:40px 0"><span style="font-size:2rem">☕</span><br>Cargando...</p>
   </div>
 </main>
 
@@ -59,11 +69,11 @@
 <div class="modal-overlay" id="modal-form">
   <div class="modal">
     <div class="modal-header">
-      <h3 id="modal-title">Nueva línea de receta</h3>
+      <h3 id="modal-title">Agregar ingrediente</h3>
       <button class="modal-close" onclick="cerrarModal('modal-form')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group"><label>Producto *</label><select id="f-producto" class="form-control"></select></div>
+      <div class="form-group"><label>Bebida *</label><select id="f-producto" class="form-control"></select></div>
       <div class="form-group"><label>Insumo *</label><select id="f-insumo" class="form-control" onchange="actualizarUnidadHint()"></select></div>
       <div class="form-group">
         <label>Cantidad *</label>
@@ -81,19 +91,32 @@
 </div>
 
 <div id="app-toast" class="toast"></div>
-<script src="../../js/auth.js"></script>
-<script src="../../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script>
-  checkAuth([1, 3]);
+  checkAuth([1, 5]);
   renderUserInfo();
 
-  let _recetas = [], _productos = [], _insumos = [], _editId = null;
+  // Categorías de bebidas (por nombre, sin importar mayúsculas)
+  const BEBIDAS_KEYWORDS = ['bebida', 'caliente', 'fría', 'fria'];
+
+  let _recetas = [], _productos = [], _bebidasProds = [], _insumos = [], _editId = null;
 
   async function cargar() {
-    document.getElementById('recipes-grid').innerHTML = '<p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:40px 0"><span style="font-size:2rem">📋</span><br>Cargando...</p>';
+    document.getElementById('recipes-grid').innerHTML = '<p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:40px 0"><span style="font-size:2rem">☕</span><br>Cargando...</p>';
     const [rR, rP, rI] = await Promise.all([apiFetch('/receta/'), apiFetch('/producto/'), apiFetch('/insumo/')]);
     if (!rR || !rP || !rI) return;
-    _recetas = await rR.json(); _productos = await rP.json(); _insumos = await rI.json();
+    _recetas = await rR.json();
+    const todosProds = await rP.json();
+    _insumos = await rI.json();
+
+    // Filtrar solo productos de categorías de bebidas
+    _bebidasProds = todosProds.filter(p => {
+      const cat = (p.categoria || '').toLowerCase();
+      return BEBIDAS_KEYWORDS.some(k => cat.includes(k));
+    });
+    _productos = _bebidasProds;
+
     poblarSelectores(); renderGrid();
   }
 
@@ -115,19 +138,21 @@
     const q = document.getElementById('search-box').value.toLowerCase();
     const prods = q ? _productos.filter(p => (p.nombre||'').toLowerCase().includes(q)) : _productos;
     const grid = document.getElementById('recipes-grid');
-    if (!prods.length) { grid.innerHTML = '<p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:40px 0">🔍 Sin resultados</p>'; return; }
+    if (!prods.length) {
+      grid.innerHTML = '<p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:40px 0">🔍 Sin bebidas registradas o sin coincidencia</p>'; return;
+    }
     grid.innerHTML = prods.map(p => {
       const lineas = _recetas.filter(r => r.id_producto === p.id_producto);
       const filas = lineas.length
         ? lineas.map(r => { const ins = _insumos.find(i => i.id_insumo === r.id_insumo) || {}; return `<div class="ingredient-row"><span class="ingredient-name">🧂 ${esc(ins.nombre||'#'+r.id_insumo)}</span><span class="ingredient-qty">${r.cantidad} ${esc(ins.unidad||'')}</span><div class="ingredient-actions"><button title="Editar" onclick="editarLinea(${r.id_receta})">✏️</button><button title="Eliminar" onclick="eliminarLinea(${r.id_receta})">🗑️</button></div></div>`; }).join('')
         : '<div class="empty-recipe">Sin ingredientes definidos</div>';
-      return `<div class="recipe-card"><div class="recipe-card-header"><span class="recipe-card-title">🍽️ ${esc(p.nombre)}<span class="cat-badge">${esc(p.categoria||'—')}</span></span><span style="font-size:.78rem;color:var(--color-text-muted)">${lineas.length} ingrediente${lineas.length!==1?'s':''}</span></div><div class="recipe-card-body">${filas}</div><div class="recipe-card-add"><button onclick="nuevaRecetaParaProducto(${p.id_producto})">+ Agregar ingrediente</button></div></div>`;
+      return `<div class="recipe-card"><div class="recipe-card-header"><span class="recipe-card-title">☕ ${esc(p.nombre)}<span class="cat-badge">${esc(p.categoria||'—')}</span></span><span style="font-size:.78rem;color:var(--color-text-muted)">${lineas.length} ingrediente${lineas.length!==1?'s':''}</span></div><div class="recipe-card-body">${filas}</div><div class="recipe-card-add"><button onclick="nuevaRecetaParaProducto(${p.id_producto})">+ Agregar ingrediente</button></div></div>`;
     }).join('');
   }
 
   function nuevaReceta() {
     _editId = null;
-    document.getElementById('modal-title').textContent = 'Nueva línea de receta';
+    document.getElementById('modal-title').textContent = 'Agregar ingrediente a bebida';
     document.getElementById('f-producto').disabled = false;
     document.getElementById('f-cantidad').value = '';
     actualizarUnidadHint(); abrirModal('modal-form');
@@ -157,7 +182,7 @@
     const id_producto = parseInt(document.getElementById('f-producto').value);
     const id_insumo = parseInt(document.getElementById('f-insumo').value);
     const cantidad = parseFloat(document.getElementById('f-cantidad').value);
-    if (!id_producto || !id_insumo || isNaN(cantidad) || cantidad <= 0) { mostrarToast('Completa todos los campos correctamente', 'error'); return; }
+    if (!id_producto || !id_insumo || isNaN(cantidad) || cantidad <= 0) { mostrarToast('Completa todos los campos', 'error'); return; }
     const btn = document.getElementById('btn-guardar'); btn.disabled = true;
     const res = await apiFetch(_editId ? `/receta/${_editId}` : '/receta/', { method: _editId ? 'PUT' : 'POST', body: JSON.stringify({ id_producto, id_insumo, cantidad }) });
     btn.disabled = false;

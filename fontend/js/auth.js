@@ -21,12 +21,12 @@ const ROLES_CON_ACCESO = {
 
 // ---- Rutas por rol (al hacer login exitoso) ----
 const RUTA_POR_ROL = {
-  1: 'plantillas/roles/admin.html',
-  2: 'plantillas/roles/cajero.html',
-  3: 'plantillas/roles/cocinero.html',
-  4: 'plantillas/roles/mesero.html',
-  5: 'plantillas/roles/barista.html',
-  6: 'plantillas/roles/almacen.html',
+  1: 'roles/admin.html',
+  2: 'roles/cajero.html',
+  3: 'roles/cocinero.html',
+  4: 'roles/mesero.html',
+  5: 'roles/barista.html',
+  6: 'roles/almacen.html',
 };
 
 
